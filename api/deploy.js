@@ -9,8 +9,9 @@ app.use(express.json());
 app.post('/api/deploy', async (req, res) => {
     try {
         const { repoName } = req.body;
+        const uniqueProjectName = `${repoName}_${Date.now()}`;  // Générer un nom de projet unique
 
-        console.log(`Début du déploiement pour le repo: ${repoName}`);
+        console.log(`Début du déploiement pour le repo: ${repoName} avec le projet: ${uniqueProjectName}`);
 
         // Étape 1 : Créer un nouveau projet sur Vercel
         const projectResponse = await fetch('https://api.vercel.com/v9/projects', {
@@ -20,7 +21,7 @@ app.post('/api/deploy', async (req, res) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                name: repoName,
+                name: uniqueProjectName,
                 gitRepository: {
                     type: 'github',
                     repo: `Romspopopoms/${repoName}`,  // Utilisez le nom d'utilisateur et le repo
@@ -48,7 +49,7 @@ app.post('/api/deploy', async (req, res) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                name: repoName,
+                name: uniqueProjectName,
                 projectId: projectId,
                 gitSource: {
                     type: 'github',
