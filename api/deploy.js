@@ -8,7 +8,11 @@ app.use(express.json());
 
 app.post('/api/deploy', async (req, res) => {
     try {
-        const { repoName } = req.body;
+        let { repoName } = req.body;
+
+        // Convertir le nom du projet en minuscules
+        repoName = repoName.toLowerCase();
+
         console.log(`Début du déploiement pour le repo: ${repoName}`);
 
         // Étape 1 : Créer un nouveau projet sur Vercel
@@ -36,7 +40,6 @@ app.post('/api/deploy', async (req, res) => {
         }
 
         const projectId = projectData.id;
-        console.log(`Projet créé avec ID: ${projectId}`);
 
         // Étape 2 : Déployer le projet nouvellement créé
         const deployResponse = await fetch('https://api.vercel.com/v13/deployments', {
@@ -70,7 +73,6 @@ app.post('/api/deploy', async (req, res) => {
         res.status(500).json({ error: 'Erreur Interne du Serveur' });
     }
 });
-
 
 
 module.exports = app;  // Ajoutez cette ligne à la fin de votre fichier `deploy.js`
