@@ -3,7 +3,6 @@ const path = require('path');
 const fetch = require('node-fetch');
 
 const GITHUB_TOKEN = process.env.MY_GITHUB_TOKEN;
-const GITHUB_ORG = process.env.MY_GITHUB_ORG; // Ajoutez ceci si vous l'utilisez quelque part
 
 function copyDirectory(src, dest) {
     const entries = fs.readdirSync(src, { withFileTypes: true });
@@ -98,6 +97,7 @@ async function createGitHubRepo(repoName) {
         body: JSON.stringify({
             name: repoName,
             private: true,
+            auto_init: true, // Crée un README.md initial
         }),
     });
 
@@ -114,7 +114,7 @@ async function createGitHubRepo(repoName) {
 
 async function createGitHubBlob(repoName, filePath) {
     const content = fs.readFileSync(filePath, 'utf-8');
-    const apiUrl = `https://api.github.com/repos/${GITHUB_ORG}/${repoName}/git/blobs`;
+    const apiUrl = `https://api.github.com/repos/${repoName}/git/blobs`;
 
     const response = await fetch(apiUrl, {
         method: 'POST',
@@ -138,7 +138,6 @@ async function createGitHubBlob(repoName, filePath) {
     return data.sha;
 }
 
-
 async function createGitHubTree(repoName, tree) {
     const apiUrl = `https://api.github.com/repos/${repoName}/git/trees`;
 
@@ -150,6 +149,7 @@ async function createGitHubTree(repoName, tree) {
         },
         body: JSON.stringify({
             tree: tree,
+            base_tree: null, // Utiliser null pour un nouvel arbre
         }),
     });
 
@@ -174,7 +174,7 @@ async function createGitHubCommit(repoName, treeSha) {
         body: JSON.stringify({
             message: 'Initial commit from template',
             tree: treeSha,
-            parents: [],
+            parents: [], // Pas de parents pour le premier commit
         }),
     });
 
@@ -219,7 +219,7 @@ async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
     const repoName = `repo_${Date.now()}`;
     const repoUrl = await createGitHubRepo(repoName);
     const fileTree = [];
-    
+
     const files = fs.readdirSync(outputDir);
     for (const file of files) {
         const filePath = path.join(outputDir, file);
@@ -233,7 +233,7 @@ async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
         });
     }
 
-    const treeSha = await createGitHubTree(repoName, fileTree);
+    const tree = (repoName, fileTree);
     const commitSha = await createGitHubCommit(repoName, treeSha);
 
     await updateGitHubBranch(repoName, commitSha);
