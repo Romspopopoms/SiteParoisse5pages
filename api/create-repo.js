@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 const fetch = require('node-fetch');
 
 const GITHUB_TOKEN = process.env.MY_GITHUB_TOKEN;
@@ -112,12 +111,97 @@ async function createGitHubRepo(repoName) {
     return data.clone_url;
 }
 
-function setupGitRepository(repoDir, repoUrl) {
-    execSync('git init', { cwd: repoDir });
-    execSync('git add .', { cwd: repoDir });
-    execSync('git commit -m "Initial commit from template"', { cwd: repoDir });
-    execSync(`git remote add origin ${repoUrl}`, { cwd: repoDir });
-    execSync('git push -u origin main', { cwd: repoDir });
+async function createGitHubBlob(repoName, content) {
+    const apiUrl = `https://api.github.com/repos/${repoName}/git/blobs`;
+
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Authorization': `token ${GITHUB_TOKEN}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            content: Buffer.from(content).toString('base64'),
+            encoding: 'base64',
+        }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(`GitHub API Error: ${data.message}`);
+    }
+
+    return data.sha;
+}
+
+async function createGitHubTree(repoName, tree) {
+    const apiUrl = `https://api.github.com/repos/${repoName}/git/trees`;
+
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Authorization': `token ${GITHUB_TOKEN}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            tree: tree,
+        }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(`GitHub API Error: ${data.message}`);
+    }
+
+    return data.sha;
+}
+
+async function createGitHubCommit(repoName, treeSha, parentSha) {
+    const apiUrl = `https://api.github.com/repos/${repoName}/git/commits`;
+
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Authorization': `token ${GITHUB_TOKEN}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            message: 'Initial commit from template',
+            tree: treeSha,
+            parents: [parentSha],
+        }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(`GitHub API Error: ${data.message}`);
+    }
+
+    return data.sha;
+}
+
+async function updateGitHubBranch(repoName, commitSha) {
+    const apiUrl = `https://api.github.com/repos/${repoName}/git/refs/heads/main`;
+
+    const response = await fetch(apiUrl, {
+        method: 'PATCH',
+        headers: {
+            'Authorization': `token ${GITHUB_TOKEN}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            sha: commitSha,
+        }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(`GitHub API Error: ${data.message}`);
+    }
 }
 
 async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
@@ -130,8 +214,26 @@ async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
 
     const repoName = `repo_${Date.now()}`;
     const repoUrl = await createGitHubRepo(repoName);
+    const fileTree = [];
+    
+    const files = fs.readdirSync(outputDir);
+    for (const file of files) {
+        const filePath = path.join(outputDir, file);
+        const fileContent = fs.readFileSync(filePath, 'utf-8');
+        const blobSha = await createGitHubBlob(repoName, fileContent);
 
-    setupGitRepository(outputDir, repoUrl);
+        fileTree.push({
+            path: file,
+            mode: '100644',
+            type: 'blob',
+            sha: blobSha,
+        });
+    }
+
+    const treeSha = await createGitHubTree(repoName, fileTree);
+    const commitSha = await createGitHubCommit(repoName, treeSha);
+
+    await updateGitHubBranch(repoName, commitSha);
 
     return repoUrl;
 }
