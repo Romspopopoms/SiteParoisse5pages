@@ -1,16 +1,15 @@
 import React from "react";
 
 const menuNavbar = [
-        {
-            name:Accueil,
-            link:"/"
-        },
-        {
-            name:Admin,
-            link:"/admin"
-        }
-
-]
+    {
+        name: "Accueil",
+        link: "/"
+    },
+    {
+        name: "Admin",
+        link: "/admin"
+    }
+];
 
 const BaseNavbar = () => {
     return (
@@ -21,11 +20,11 @@ const BaseNavbar = () => {
                         <li key={index}>
                             <a href={item.link}>{item.name}</a>
                         </li>
-                        ))}
+                    ))}
                 </ul>
             </nav>
         </div>
-    )
+    );
 }
 
-export default BaseNavbar
+export default BaseNavbar;
