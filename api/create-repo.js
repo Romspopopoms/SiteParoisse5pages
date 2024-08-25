@@ -115,7 +115,7 @@ async function createGitHubRepo(repoName) {
 
 async function createGitHubBlob(repoName, filePath) {
     const content = fs.readFileSync(filePath, 'utf-8');
-    const apiUrl = `https://api.github.com/repos/${repoName}/git/blobs`;
+    const apiUrl = `https://api.github.com/repos/${GITHUB_ORG}/${repoName}/git/blobs`;
 
     const response = await fetch(apiUrl, {
         method: 'POST',
