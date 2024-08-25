@@ -3,9 +3,8 @@ const path = require('path');
 const { execSync } = require('child_process');
 const fetch = require('node-fetch');
 
-// Remplacez par votre token d'accès personnel GitHub
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_ORG = process.env.GITHUB_ORG; // Remplacez par votre organisation GitHub (ou votre nom d'utilisateur pour les dépôts personnels)
+const GITHUB_ORG = process.env.GITHUB_ORG;
 
 function copyDirectory(src, dest) {
     const entries = fs.readdirSync(src, { withFileTypes: true });
@@ -97,7 +96,7 @@ async function createGitHubRepo(repoName) {
         },
         body: JSON.stringify({
             name: repoName,
-            private: true, // Vous pouvez choisir de le rendre public
+            private: true,
         }),
     });
 
@@ -119,6 +118,11 @@ function setupGitRepository(repoDir, repoUrl) {
 }
 
 async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
+    // Créer le répertoire de sortie s'il n'existe pas
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+    }
+
     copyDirectory(templateDir, outputDir);
     replacePlaceholders(outputDir, formData);
 
@@ -136,6 +140,7 @@ export default async function handler(req, res) {
         const templateDir = path.join(__dirname, '..', 'src', 'components', 'TemplateParoisse1');
         const outputDir = path.join(process.cwd(), 'output', `repo_${Date.now()}`);
         console.log('Template directory path:', templateDir);
+        console.log('Output directory path:', outputDir);
 
         try {
             const repoUrl = await injectTemplateAndSetupRepo(template_data, templateDir, outputDir);
