@@ -1,25 +1,37 @@
 import fetch from 'node-fetch';
 
 const GITHUB_TOKEN = process.env.MY_GITHUB_TOKEN;
-const GITHUB_USER = process.env.MY_GITHUB_ORG;
 
 export default async function handler(req, res) {
     try {
-        const response = await fetch(`https://api.github.com/users/${GITHUB_USER}/repos`, {
-            headers: {
-                'Authorization': `token ${GITHUB_TOKEN}`
-            }
-        });
+        const repos = [];
+        let page = 1;
+        let hasMore = true;
 
-        if (!response.ok) {
-            throw new Error('Failed to fetch repos');
+        while (hasMore) {
+            const response = await fetch(`https://api.github.com/user/repos?per_page=100&page=${page}`, {
+                headers: {
+                    'Authorization': `token ${GITHUB_TOKEN}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch repos');
+            }
+
+            const result = await response.json();
+            repos.push(...result);
+            page += 1;
+            hasMore = result.length === 100;  // Continue to paginate if we have 100 results
         }
 
-        const repos = await response.json();
+        // Return the repo list with basic details
         res.status(200).json(repos.map(repo => ({
             name: repo.name,
             url: repo.html_url,
-            validated: false,  // Vous pouvez ajouter une logique pour vérifier si le dépôt est validé
+            private: repo.private,
+            validated: false,  // Placeholder for validation logic
         })));
     } catch (error) {
         console.error('Error fetching repos:', error);
