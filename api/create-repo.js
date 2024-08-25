@@ -3,6 +3,7 @@ const path = require('path');
 const fetch = require('node-fetch');
 
 const GITHUB_TOKEN = process.env.MY_GITHUB_TOKEN;
+const GITHUB_ORG = process.env.MY_GITHUB_ORG;
 
 function copyDirectory(src, dest) {
     const entries = fs.readdirSync(src, { withFileTypes: true });
@@ -233,13 +234,14 @@ async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
         });
     }
 
-    const tree = (repoName, fileTree);
+    const treeSha = await createGitHubTree(repoName, fileTree);  // Corrected line
     const commitSha = await createGitHubCommit(repoName, treeSha);
 
     await updateGitHubBranch(repoName, commitSha);
 
     return repoUrl;
 }
+
 
 export default async function handler(req, res) {
     if (req.method === 'POST') {
