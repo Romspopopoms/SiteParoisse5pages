@@ -1,12 +1,12 @@
-const express = require('express');
 const fetch = require('node-fetch');
 
-const app = express();
 const VERCEL_API_TOKEN = process.env.VERCEL_API_TOKEN;
 
-app.use(express.json());
+module.exports = async (req, res) => {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
 
-app.post('/api/deploy', async (req, res) => {
     try {
         const { repoName } = req.body;
         const uniqueProjectName = `${repoName}_${Date.now()}`;
@@ -69,8 +69,4 @@ app.post('/api/deploy', async (req, res) => {
         console.error('Server Error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
-});
-
-app.listen(3000, () => {
-    console.log('Server running on port 3000'); 
-});
+};
