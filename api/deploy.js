@@ -9,40 +9,58 @@ app.use(express.json());
 app.post('/api/deploy', async (req, res) => {
     try {
         let { repoName } = req.body;
-
-        // Convertir le nom du projet en minuscules
         repoName = repoName.toLowerCase();
 
         console.log(`Début du déploiement pour le repo: ${repoName}`);
 
-        // Étape 1 : Créer un nouveau projet sur Vercel
-        const projectResponse = await fetch('https://api.vercel.com/v9/projects', {
-            method: 'POST',
+        // Étape 1 : Vérifier si le projet existe déjà
+        let projectId = null;
+        const existingProjectResponse = await fetch(`https://api.vercel.com/v9/projects/${repoName}`, {
+            method: 'GET',
             headers: {
                 'Authorization': `Bearer ${VERCEL_API_TOKEN}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                name: repoName,
-                gitRepository: {
-                    type: 'github',
-                    repo: `Romspopopoms/${repoName}`,
-                },
-            }),
         });
 
-        const projectData = await projectResponse.json();
-        console.log('Réponse de création de projet:', projectData);
+        if (existingProjectResponse.ok) {
+            const existingProjectData = await existingProjectResponse.json();
+            projectId = existingProjectData.id;
+            console.log(`Projet existant trouvé: ${repoName} (ID: ${projectId})`);
+        } else if (existingProjectResponse.status === 404) {
+            // Étape 2 : Créer un nouveau projet si celui-ci n'existe pas
+            const projectResponse = await fetch('https://api.vercel.com/v9/projects', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${VERCEL_API_TOKEN}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: repoName,
+                    gitRepository: {
+                        type: 'github',
+                        repo: `Romspopopoms/${repoName}`,  
+                    },
+                }),
+            });
 
-        if (!projectResponse.ok) {
-            console.error('Erreur lors de la création du projet:', projectData);
-            return res.status(500).json({ error: projectData.error.message });
+            const projectData = await projectResponse.json();
+            console.log('Réponse de création de projet:', projectData);
+
+            if (!projectResponse.ok) {
+                console.error('Erreur lors de la création du projet:', projectData);
+                return res.status(500).json({ error: projectData.error.message });
+            }
+
+            projectId = projectData.id;
+        } else {
+            // Gérer d'autres erreurs possibles
+            const errorData = await existingProjectResponse.json();
+            console.error('Erreur lors de la vérification du projet:', errorData);
+            return res.status(500).json({ error: errorData.error.message });
         }
 
-        const projectId = projectData.id;
-        const repoId = projectData.link.repoId; // Récupérer le repoId du projet
-
-        // Étape 2 : Déployer le projet nouvellement créé
+        // Étape 3 : Déployer le projet (nouveau ou existant)
         const deployResponse = await fetch('https://api.vercel.com/v13/deployments', {
             method: 'POST',
             headers: {
@@ -54,8 +72,7 @@ app.post('/api/deploy', async (req, res) => {
                 projectId: projectId,
                 gitSource: {
                     type: 'github',
-                    repoId: repoId, // Utiliser le repoId récupéré
-                    ref: 'main', // Branche que vous voulez déployer
+                    ref: 'main', 
                 },
             }),
         });
@@ -75,6 +92,7 @@ app.post('/api/deploy', async (req, res) => {
         res.status(500).json({ error: 'Erreur Interne du Serveur' });
     }
 });
+
 
 
 
