@@ -10,7 +10,7 @@ export default async function handler(req, res) {
         const { user_id, template_data } = req.body;
         
         try {
-            console.log("Template Data being inserted:", JSON.stringify(template_data)); // Ajout du log
+            console.log("Template Data being inserted:", JSON.stringify(template_data));
             const result = await pool.query(
                 'INSERT INTO templates (user_id, template_data, status) VALUES ($1, $2, $3) RETURNING *',
                 [user_id, JSON.stringify(template_data), 'pending']
