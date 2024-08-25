@@ -3,7 +3,7 @@ const path = require('path');
 const fetch = require('node-fetch');
 
 const GITHUB_TOKEN = process.env.MY_GITHUB_TOKEN;
-const GITHUB_ORG = process.env.MY_GITHUB_ORG;
+const GITHUB_USER = process.env.MY_GITHUB_ORG; // Le nom d'utilisateur GitHub
 
 function copyDirectory(src, dest) {
     const entries = fs.readdirSync(src, { withFileTypes: true });
@@ -25,7 +25,6 @@ function copyDirectory(src, dest) {
 function replacePlaceholdersInFile(filePath, formData) {
     let content = fs.readFileSync(filePath, 'utf-8');
 
-    // Remplacer les placeholders par les données du formData
     content = content.replace(/{{navbar.logoSrc}}/g, formData.navbar.logoSrc);
     content = content.replace(/{{navbar.link1}}/g, formData.navbar.links[0].name);
     content = content.replace(/{{navbar.link2}}/g, formData.navbar.links[1].name);
@@ -98,7 +97,7 @@ async function createGitHubRepo(repoName) {
         body: JSON.stringify({
             name: repoName,
             private: true,
-            auto_init: true, // Crée un README.md initial
+            auto_init: true,
         }),
     });
 
@@ -115,7 +114,7 @@ async function createGitHubRepo(repoName) {
 
 async function createGitHubBlob(repoName, filePath) {
     const content = fs.readFileSync(filePath, 'utf-8');
-    const apiUrl = `https://api.github.com/repos/${GITHUB_ORG}/${repoName}/git/blobs`;
+    const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/blobs`;
 
     const response = await fetch(apiUrl, {
         method: 'POST',
@@ -140,7 +139,7 @@ async function createGitHubBlob(repoName, filePath) {
 }
 
 async function createGitHubTree(repoName, tree) {
-    const apiUrl = `https://api.github.com/repos/${repoName}/git/trees`;
+    const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/trees`;
 
     const response = await fetch(apiUrl, {
         method: 'POST',
@@ -150,7 +149,7 @@ async function createGitHubTree(repoName, tree) {
         },
         body: JSON.stringify({
             tree: tree,
-            base_tree: null, // Utiliser null pour un nouvel arbre
+            base_tree: null,
         }),
     });
 
@@ -164,7 +163,7 @@ async function createGitHubTree(repoName, tree) {
 }
 
 async function createGitHubCommit(repoName, treeSha) {
-    const apiUrl = `https://api.github.com/repos/${repoName}/git/commits`;
+    const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/commits`;
 
     const response = await fetch(apiUrl, {
         method: 'POST',
@@ -175,7 +174,7 @@ async function createGitHubCommit(repoName, treeSha) {
         body: JSON.stringify({
             message: 'Initial commit from template',
             tree: treeSha,
-            parents: [], // Pas de parents pour le premier commit
+            parents: [],
         }),
     });
 
@@ -189,7 +188,7 @@ async function createGitHubCommit(repoName, treeSha) {
 }
 
 async function updateGitHubBranch(repoName, commitSha) {
-    const apiUrl = `https://api.github.com/repos/${repoName}/git/refs/heads/main`;
+    const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/refs/heads/main`;
 
     const response = await fetch(apiUrl, {
         method: 'PATCH',
@@ -214,6 +213,7 @@ async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
         fs.mkdirSync(outputDir, { recursive: true });
     }
 
+    // Copier les fichiers du template et remplacer les placeholders
     copyDirectory(templateDir, outputDir);
     replacePlaceholders(outputDir, formData);
 
@@ -234,14 +234,13 @@ async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
         });
     }
 
-    const treeSha = await createGitHubTree(repoName, fileTree);  // Corrected line
+    const treeSha = await createGitHubTree(repoName, fileTree);  // Correction de l'utilisation de treeSha
     const commitSha = await createGitHubCommit(repoName, treeSha);
 
     await updateGitHubBranch(repoName, commitSha);
 
     return repoUrl;
 }
-
 
 export default async function handler(req, res) {
     if (req.method === 'POST') {
