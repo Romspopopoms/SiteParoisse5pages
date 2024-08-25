@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import TemplateSelector from '../components/TemplateSelector';
 import DynamicForm from '../components/DynamicForm';
 import Template1 from "../assets/BoulangerieTemplates.png";
+import BaseNavbar from '../components/BaseNavbar';
 
 const HomePage = () => {
     const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -29,6 +30,7 @@ const HomePage = () => {
 
     return (
         <div className="">
+            <BaseNavbar />
             {!selectedTemplate ? (
                 <TemplateSelector templates={templates} onSelectTemplate={handleTemplateSelect} />
             ) : (
