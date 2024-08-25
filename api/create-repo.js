@@ -3,8 +3,9 @@ const path = require('path');
 const { execSync } = require('child_process');
 const fetch = require('node-fetch');
 
-const {MY_GITHUB_TOKEN} = process.env;
-const {MY_GITHUB_ORG}= process.env;
+const GITHUB_TOKEN = process.env.MY_GITHUB_TOKEN;
+const GITHUB_ORG = process.env.MY_GITHUB_ORG;
+
 
 function copyDirectory(src, dest) {
     const entries = fs.readdirSync(src, { withFileTypes: true });
@@ -88,10 +89,10 @@ function replacePlaceholders(dir, formData) {
 }
 
 async function createGitHubRepo(repoName) {
-    const response = await fetch(`https://api.github.com/orgs/${MY_GITHUB_ORG}/repos`, {
+    const response = await fetch(`https://api.github.com/orgs/${GITHUB_ORG}/repos`, {
         method: 'POST',
         headers: {
-            'Authorization': `token ${MY_GITHUB_TOKEN}`,
+            'Authorization': `token ${GITHUB_TOKEN}`,
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -99,6 +100,8 @@ async function createGitHubRepo(repoName) {
             private: true,
         }),
     });
+    console.log('GITHUB_TOKEN:', GITHUB_TOKEN ? 'Token exists' : 'Token missing');
+    console.log('GITHUB_ORG:', GITHUB_ORG);
 
     const data = await response.json();
 
