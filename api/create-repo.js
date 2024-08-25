@@ -111,7 +111,8 @@ async function createGitHubRepo(repoName) {
     return data.clone_url;
 }
 
-async function createGitHubBlob(repoName, content) {
+async function createGitHubBlob(repoName, filePath) {
+    const content = fs.readFileSync(filePath, 'utf-8');
     const apiUrl = `https://api.github.com/repos/${repoName}/git/blobs`;
 
     const response = await fetch(apiUrl, {
@@ -158,7 +159,7 @@ async function createGitHubTree(repoName, tree) {
     return data.sha;
 }
 
-async function createGitHubCommit(repoName, treeSha, parentSha) {
+async function createGitHubCommit(repoName, treeSha) {
     const apiUrl = `https://api.github.com/repos/${repoName}/git/commits`;
 
     const response = await fetch(apiUrl, {
@@ -170,7 +171,7 @@ async function createGitHubCommit(repoName, treeSha, parentSha) {
         body: JSON.stringify({
             message: 'Initial commit from template',
             tree: treeSha,
-            parents: [parentSha],
+            parents: [],
         }),
     });
 
@@ -219,8 +220,7 @@ async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
     const files = fs.readdirSync(outputDir);
     for (const file of files) {
         const filePath = path.join(outputDir, file);
-        const fileContent = fs.readFileSync(filePath, 'utf-8');
-        const blobSha = await createGitHubBlob(repoName, fileContent);
+        const blobSha = await createGitHubBlob(repoName, filePath);
 
         fileTree.push({
             path: file,
