@@ -1,11 +1,3 @@
-const express = require('express');
-const fetch = require('node-fetch');
-
-const app = express();
-const VERCEL_API_TOKEN = process.env.VERCEL_API_TOKEN;
-
-app.use(express.json());
-
 app.post('/api/deploy', async (req, res) => {
     try {
         const { repoName } = req.body;
@@ -32,6 +24,10 @@ app.post('/api/deploy', async (req, res) => {
         const projectData = await projectResponse.json();
 
         if (!projectResponse.ok) {
+            if (projectData.error && projectData.error.code === 'repo_links_exceeded_limit') {
+                return res.status(400).json({ error: 'Ce dépôt GitHub est déjà connecté à 3 projets Vercel. Veuillez en supprimer un ou créer un nouveau dépôt.' });
+            }
+
             console.log('Erreur lors de la création du projet:', projectData);
             return res.status(500).json({ error: projectData.error.message });
         }
@@ -69,8 +65,4 @@ app.post('/api/deploy', async (req, res) => {
         console.error('Server Error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
-});
-
-app.listen(3000, () => {
-    console.log('Server running on port 3000');
 });
