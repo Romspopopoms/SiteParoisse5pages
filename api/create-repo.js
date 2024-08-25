@@ -188,7 +188,7 @@ async function createGitHubCommit(repoName, treeSha) {
 }
 
 async function updateGitHubBranch(repoName, commitSha) {
-    const branchRefUrl = `https://api.github.com/repos/${repoName}/git/refs/heads/main`;
+    const branchRefUrl = `https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/refs/heads/main`;
 
     // Vérifier si la branche 'main' existe
     const branchResponse = await fetch(branchRefUrl, {
@@ -201,7 +201,7 @@ async function updateGitHubBranch(repoName, commitSha) {
 
     if (branchResponse.status === 404) {
         // Si la branche n'existe pas, la créer
-        const createBranchResponse = await fetch(`https://api.github.com/repos/${repoName}/git/refs`, {
+        const createBranchResponse = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/refs`, {
             method: 'POST',
             headers: {
                 'Authorization': `token ${GITHUB_TOKEN}`,
@@ -240,6 +240,7 @@ async function updateGitHubBranch(repoName, commitSha) {
         throw new Error(`GitHub API Error: ${data.message}`);
     }
 }
+
 
 async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
     if (!fs.existsSync(outputDir)) {
