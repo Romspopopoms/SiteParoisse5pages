@@ -113,7 +113,7 @@ async function createGitHubRepo(repoName) {
 
 async function createGitHubBlob(repoName, filePath) {
     const content = fs.readFileSync(filePath, 'utf-8');
-    const apiUrl = `https://api.github.com/repos/${repoName}/git/blobs`;
+    const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/blobs`;
 
     const response = await fetch(apiUrl, {
         method: 'POST',
@@ -130,11 +130,13 @@ async function createGitHubBlob(repoName, filePath) {
     const data = await response.json();
 
     if (!response.ok) {
+        console.error('GitHub API response:', data);
         throw new Error(`GitHub API Error: ${data.message}`);
     }
 
     return data.sha;
 }
+
 
 async function createGitHubTree(repoName, tree) {
     const apiUrl = `https://api.github.com/repos/${repoName}/git/trees`;
