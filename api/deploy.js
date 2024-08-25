@@ -40,6 +40,7 @@ app.post('/api/deploy', async (req, res) => {
         }
 
         const projectId = projectData.id;
+        const repoId = projectData.link.repoId; // Récupérer le repoId du projet
 
         // Étape 2 : Déployer le projet nouvellement créé
         const deployResponse = await fetch('https://api.vercel.com/v13/deployments', {
@@ -53,6 +54,7 @@ app.post('/api/deploy', async (req, res) => {
                 projectId: projectId,
                 gitSource: {
                     type: 'github',
+                    repoId: repoId, // Utiliser le repoId récupéré
                     ref: 'main', // Branche que vous voulez déployer
                 },
             }),
@@ -73,6 +75,7 @@ app.post('/api/deploy', async (req, res) => {
         res.status(500).json({ error: 'Erreur Interne du Serveur' });
     }
 });
+
 
 
 module.exports = app;  // Ajoutez cette ligne à la fin de votre fichier `deploy.js`
