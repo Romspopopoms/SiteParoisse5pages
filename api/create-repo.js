@@ -3,6 +3,7 @@ const path = require('path');
 const fetch = require('node-fetch');
 
 const GITHUB_TOKEN = process.env.MY_GITHUB_TOKEN;
+const GITHUB_ORG = process.env.MY_GITHUB_ORG; // Ajoutez ceci si vous l'utilisez quelque part
 
 function copyDirectory(src, dest) {
     const entries = fs.readdirSync(src, { withFileTypes: true });
@@ -113,7 +114,7 @@ async function createGitHubRepo(repoName) {
 
 async function createGitHubBlob(repoName, filePath) {
     const content = fs.readFileSync(filePath, 'utf-8');
-    const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/blobs`;
+    const apiUrl = `https://api.github.com/repos/${GITHUB_ORG}/${repoName}/git/blobs`;
 
     const response = await fetch(apiUrl, {
         method: 'POST',
