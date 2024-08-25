@@ -188,25 +188,58 @@ async function createGitHubCommit(repoName, treeSha) {
 }
 
 async function updateGitHubBranch(repoName, commitSha) {
-    const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/refs/heads/main`;
+    const branchRefUrl = `https://api.github.com/repos/${repoName}/git/refs/heads/main`;
 
-    const response = await fetch(apiUrl, {
-        method: 'PATCH',
+    // Obtenir l'état actuel de la branche principale
+    const branchResponse = await fetch(branchRefUrl, {
+        method: 'GET',
         headers: {
             'Authorization': `token ${GITHUB_TOKEN}`,
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-            sha: commitSha,
-        }),
     });
 
-    const data = await response.json();
+    if (branchResponse.status === 404) {
+        // Si la branche n'existe pas, créez-la
+        const createBranchResponse = await fetch(`https://api.github.com/repos/${repoName}/git/refs`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `token ${GITHUB_TOKEN}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                ref: 'refs/heads/main',
+                sha: commitSha,
+            }),
+        });
 
-    if (!response.ok) {
-        throw new Error(`GitHub API Error: ${data.message}`);
+        if (!createBranchResponse.ok) {
+            const data = await createBranchResponse.json();
+            throw new Error(`GitHub API Error: ${data.message}`);
+        }
+    } else {
+        const branchData = await branchResponse.json();
+
+        // Mise à jour de la branche principale avec le nouveau commit
+        const updateBranchResponse = await fetch(branchRefUrl, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `token ${GITHUB_TOKEN}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                sha: commitSha,
+                force: true,  // Force l'update pour éviter l'erreur "not a fast forward"
+            }),
+        });
+
+        if (!updateBranchResponse.ok) {
+            const data = await updateBranchResponse.json();
+            throw new Error(`GitHub API Error: ${data.message}`);
+        }
     }
 }
+
 
 async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
     if (!fs.existsSync(outputDir)) {
