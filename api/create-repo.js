@@ -1,17 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-const axios = require('axios');
+const fetch = require('node-fetch');
 
 // Remplacez par votre token d'accès personnel GitHub
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_ORG = process.env.GITHUB_TOKEN; // Remplacez par votre organisation GitHub (ou votre nom d'utilisateur pour les dépôts personnels)
+const GITHUB_ORG = process.env.GITHUB_ORG; // Remplacez par votre organisation GitHub (ou votre nom d'utilisateur pour les dépôts personnels)
 
-/**
- * Copie récursivement un répertoire d'un endroit à un autre.
- * @param {String} src - Chemin du répertoire source.
- * @param {String} dest - Chemin du répertoire de destination.
- */
 function copyDirectory(src, dest) {
     const entries = fs.readdirSync(src, { withFileTypes: true });
 
@@ -29,11 +24,6 @@ function copyDirectory(src, dest) {
     }
 }
 
-/**
- * Remplace les placeholders dans un fichier donné par les valeurs du formData.
- * @param {String} filePath - Chemin du fichier où les placeholders doivent être remplacés.
- * @param {Object} formData - Données du formulaire avec les valeurs à injecter.
- */
 function replacePlaceholdersInFile(filePath, formData) {
     let content = fs.readFileSync(filePath, 'utf-8');
 
@@ -84,11 +74,6 @@ function replacePlaceholdersInFile(filePath, formData) {
     fs.writeFileSync(filePath, content, 'utf-8');
 }
 
-/**
- * Remplace les placeholders dans tous les fichiers d'un répertoire donné.
- * @param {String} dir - Le répertoire dans lequel remplacer les placeholders.
- * @param {Object} formData - Les données du formulaire.
- */
 function replacePlaceholders(dir, formData) {
     const files = fs.readdirSync(dir);
 
@@ -103,35 +88,29 @@ function replacePlaceholders(dir, formData) {
     });
 }
 
-/**
- * Crée un nouveau dépôt GitHub via l'API GitHub.
- * @param {String} repoName - Le nom du dépôt à créer.
- * @returns {Promise<String>} - L'URL du dépôt GitHub.
- */
 async function createGitHubRepo(repoName) {
-    const response = await axios.post(
-        `https://api.github.com/orgs/${GITHUB_ORG}/repos`,
-        {
+    const response = await fetch(`https://api.github.com/orgs/${GITHUB_ORG}/repos`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `token ${GITHUB_TOKEN}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
             name: repoName,
             private: true, // Vous pouvez choisir de le rendre public
-        },
-        {
-            headers: {
-                Authorization: `token ${GITHUB_TOKEN}`,
-            },
-        }
-    );
+        }),
+    });
 
-    return response.data.clone_url;
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(`GitHub API Error: ${data.message}`);
+    }
+
+    return data.clone_url;
 }
 
-/**
- * Configure un dépôt Git dans le répertoire spécifié et le pousse vers GitHub.
- * @param {String} repoDir - Le répertoire du projet.
- * @param {String} repoUrl - L'URL du dépôt GitHub.
- */
 function setupGitRepository(repoDir, repoUrl) {
-    // Initialiser le dépôt Git
     execSync('git init', { cwd: repoDir });
     execSync('git add .', { cwd: repoDir });
     execSync('git commit -m "Initial commit from template"', { cwd: repoDir });
@@ -139,41 +118,26 @@ function setupGitRepository(repoDir, repoUrl) {
     execSync('git push -u origin main', { cwd: repoDir });
 }
 
-/**
- * Injecte les données du formulaire dans un template, puis configure un dépôt Git.
- * @param {Object} formData - Les données du formulaire à injecter dans le template.
- * @param {String} templateDir - Le répertoire contenant le template.
- * @param {String} outputDir - Le répertoire de sortie pour le projet généré.
- * @returns {Promise<String>} - L'URL du dépôt GitHub.
- */
 async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
-    // Copier le template dans le répertoire de sortie
     copyDirectory(templateDir, outputDir);
-
-    // Remplacer les placeholders dans les fichiers copiés
     replacePlaceholders(outputDir, formData);
 
-    // Créer un nouveau dépôt GitHub
     const repoName = `repo_${Date.now()}`;
     const repoUrl = await createGitHubRepo(repoName);
 
-    // Configurer le dépôt Git local et le pousser vers GitHub
     setupGitRepository(outputDir, repoUrl);
 
     return repoUrl;
 }
 
-// Handler pour l'API
 export default async function handler(req, res) {
     if (req.method === 'POST') {
         const { template_data } = req.body;
-        const templateDir = path.join(process.cwd(), 'templates', 'TemplateParoisse1'); // Dossier du template
-        const outputDir = path.join(process.cwd(), 'output', `repo_${Date.now()}`); // Dossier de sortie unique pour le repo
+        const templateDir = path.join(process.cwd(), 'templates', 'TemplateParoisse1');
+        const outputDir = path.join(process.cwd(), 'output', `repo_${Date.now()}`);
 
         try {
-            // Injecter les données dans le template et créer le dépôt GitHub
             const repoUrl = await injectTemplateAndSetupRepo(template_data, templateDir, outputDir);
-            // Retourner l'URL du dépôt créé au frontend
             res.status(200).json({ repo_url: repoUrl });
         } catch (error) {
             console.error('Error creating repo:', error);
