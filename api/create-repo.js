@@ -190,7 +190,7 @@ async function createGitHubCommit(repoName, treeSha) {
 async function updateGitHubBranch(repoName, commitSha) {
     const branchRefUrl = `https://api.github.com/repos/${repoName}/git/refs/heads/main`;
 
-    // Obtenir l'état actuel de la branche principale
+    // Vérifier si la branche 'main' existe
     const branchResponse = await fetch(branchRefUrl, {
         method: 'GET',
         headers: {
@@ -200,7 +200,7 @@ async function updateGitHubBranch(repoName, commitSha) {
     });
 
     if (branchResponse.status === 404) {
-        // Si la branche n'existe pas, créez-la
+        // Si la branche n'existe pas, la créer
         const createBranchResponse = await fetch(`https://api.github.com/repos/${repoName}/git/refs`, {
             method: 'POST',
             headers: {
@@ -217,10 +217,8 @@ async function updateGitHubBranch(repoName, commitSha) {
             const data = await createBranchResponse.json();
             throw new Error(`GitHub API Error: ${data.message}`);
         }
-    } else {
-        const branchData = await branchResponse.json();
-
-        // Mise à jour de la branche principale avec le nouveau commit
+    } else if (branchResponse.ok) {
+        // Mise à jour de la branche 'main' avec le nouveau commit
         const updateBranchResponse = await fetch(branchRefUrl, {
             method: 'PATCH',
             headers: {
@@ -229,7 +227,7 @@ async function updateGitHubBranch(repoName, commitSha) {
             },
             body: JSON.stringify({
                 sha: commitSha,
-                force: true,  // Force l'update pour éviter l'erreur "not a fast forward"
+                force: true, // Forcer la mise à jour
             }),
         });
 
@@ -237,16 +235,17 @@ async function updateGitHubBranch(repoName, commitSha) {
             const data = await updateBranchResponse.json();
             throw new Error(`GitHub API Error: ${data.message}`);
         }
+    } else {
+        const data = await branchResponse.json();
+        throw new Error(`GitHub API Error: ${data.message}`);
     }
 }
-
 
 async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    // Copier les fichiers du template et remplacer les placeholders
     copyDirectory(templateDir, outputDir);
     replacePlaceholders(outputDir, formData);
 
@@ -267,7 +266,7 @@ async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
         });
     }
 
-    const treeSha = await createGitHubTree(repoName, fileTree);  // Correction de l'utilisation de treeSha
+    const treeSha = await createGitHubTree(repoName, fileTree);
     const commitSha = await createGitHubCommit(repoName, treeSha);
 
     await updateGitHubBranch(repoName, commitSha);
