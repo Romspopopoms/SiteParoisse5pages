@@ -138,7 +138,7 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
         const { template_data } = req.body;
         const templateDir = path.join(__dirname, '..', 'src', 'components', 'TemplateParoisse1');
-        const outputDir = path.join(process.cwd(), 'output', `repo_${Date.now()}`);
+        const outputDir = path.join('/tmp', `repo_${Date.now()}`);
         console.log('Template directory path:', templateDir);
         console.log('Output directory path:', outputDir);
 
@@ -153,3 +153,4 @@ export default async function handler(req, res) {
         res.status(405).json({ error: 'Method not allowed' });
     }
 }
+
