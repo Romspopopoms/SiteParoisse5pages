@@ -26,6 +26,7 @@ app.post('/api/deploy', async (req, res) => {
     });
 
     const projectData = await projectResponse.json();
+    console.log('Project Creation Response:', projectData);  // Ajoutez cette ligne
 
     if (!projectResponse.ok) {
         return res.status(500).json({ error: projectData.error.message });
@@ -51,14 +52,11 @@ app.post('/api/deploy', async (req, res) => {
     });
 
     const deployData = await deployResponse.json();
+    console.log('Deploy Response:', deployData);  // Ajoutez cette ligne
 
     if (deployResponse.ok) {
         res.status(200).json({ previewUrl: deployData.url });
     } else {
         res.status(500).json({ error: deployData.error.message });
     }
-});
-
-app.listen(3000, () => {
-    console.log('Server running on port 3000');
 });
