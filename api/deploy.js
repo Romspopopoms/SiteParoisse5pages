@@ -4,6 +4,8 @@ const fetch = require('node-fetch');
 const app = express();
 const VERCEL_API_TOKEN = process.env.VERCEL_API_TOKEN;
 
+app.use(express.json());
+
 app.post('/api/deploy', async (req, res) => {
     const { repoName } = req.body;
 
@@ -18,7 +20,7 @@ app.post('/api/deploy', async (req, res) => {
             name: repoName,
             gitRepository: {
                 type: 'github',
-                repo: repoName,
+                repo: `Romspopopoms/${repoName}`,  // Utilisez le nom d'utilisateur et le repo
             },
         }),
     });
@@ -40,11 +42,10 @@ app.post('/api/deploy', async (req, res) => {
         },
         body: JSON.stringify({
             name: repoName,
+            projectId: projectId,
             gitSource: {
                 type: 'github',
-                repoId: projectId,
                 ref: 'main', // Branche que vous voulez déployer
-                repoPath: `/${repoName}`,
             },
         }),
     });

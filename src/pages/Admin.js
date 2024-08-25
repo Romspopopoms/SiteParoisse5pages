@@ -5,6 +5,7 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [currentRepo, setCurrentRepo] = useState(null);
+    const [reviewText, setReviewText] = useState(""); // Ajoutez cette ligne
 
     useEffect(() => {
         fetch('/api/get-repos')
@@ -43,7 +44,7 @@ const AdminDashboard = () => {
         setModalOpen(true);
     };
 
-    const handleSubmitReview = (reviewText) => {
+    const handleSubmitReview = () => {
         // Envoyer le feedback pour le repo
         fetch(`/api/review-repo`, {
             method: 'POST',
@@ -103,12 +104,13 @@ const AdminDashboard = () => {
                         <textarea 
                             className="w-full h-32 border rounded p-2"
                             placeholder="Entrez vos remarques..."
-                            onChange={(e) => setReviewText(e.target.value)}
+                            value={reviewText} // Ajoutez cette ligne
+                            onChange={(e) => setReviewText(e.target.value)} // Modifiez cette ligne
                         />
                         <div className="mt-4 flex justify-end space-x-2">
                             <button onClick={() => setModalOpen(false)} className="px-4 py-2 bg-gray-400 text-white rounded">Annuler</button>
                             <button 
-                                onClick={() => handleSubmitReview(reviewText)} 
+                                onClick={handleSubmitReview} 
                                 className="px-4 py-2 bg-blue-500 text-white rounded"
                             >
                                 Envoyer
