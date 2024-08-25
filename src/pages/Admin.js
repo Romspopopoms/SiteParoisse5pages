@@ -3,10 +3,11 @@ import React, { useEffect, useState } from 'react';
 const AdminDashboard = () => {
     const [repos, setRepos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [currentRepo, setCurrentRepo] = useState(null);
 
     useEffect(() => {
-        // Charger les dépôts via une API ou directement depuis GitHub
-        fetch('/api/get-repos')  // Assurez-vous de créer cette route API pour récupérer les repos
+        fetch('/api/get-repos')
             .then(response => response.json())
             .then(data => {
                 setRepos(data);
@@ -18,9 +19,8 @@ const AdminDashboard = () => {
             });
     }, []);
 
-    const handleValidation = (repoName) => {
-        // Valider le dépôt
-        fetch(`/api/validate-repo`, {
+    const handleDeploy = (repoName) => {
+        fetch('/api/deploy', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -29,51 +29,93 @@ const AdminDashboard = () => {
         })
         .then(response => response.json())
         .then(data => {
-            // Mettre à jour l'état des repos pour refléter la validation
-            const updatedRepos = repos.map(repo => 
-                repo.name === repoName ? { ...repo, validated: true } : repo
-            );
-            setRepos(updatedRepos);
+            if (data.previewUrl) {
+                window.open(data.previewUrl, '_blank');
+            }
         })
         .catch(error => {
-            console.error('Error validating repo:', error);
+            console.error('Error deploying repo:', error);
+        });
+    };
+
+    const handleReview = (repoName) => {
+        setCurrentRepo(repoName);
+        setModalOpen(true);
+    };
+
+    const handleSubmitReview = (reviewText) => {
+        // Envoyer le feedback pour le repo
+        fetch(`/api/review-repo`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ repoName: currentRepo, review: reviewText }),
+        })
+        .then(response => response.json())
+        .then(() => {
+            setModalOpen(false);
+        })
+        .catch(error => {
+            console.error('Error submitting review:', error);
         });
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 p-8">
-            <h1 className="text-3xl font-bold text-center mb-8">Admin Dashboard</h1>
+        <div className="p-6">
+            <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
             {loading ? (
-                <p className="text-center">Loading...</p>
+                <p>Loading...</p>
             ) : (
                 <ul className="space-y-4">
                     {repos.map(repo => (
-                        <li key={repo.name} className="bg-white shadow-md rounded-lg p-4 flex justify-between items-center">
-                            <div>
-                                <a 
-                                    href={`https://${repo.name}.vercel.app`} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer" 
-                                    className="text-blue-500 hover:underline text-xl"
+                        <li key={repo.name} className="flex items-center justify-between">
+                            <span>{repo.name}</span>
+                            <div className="space-x-2">
+                                <button 
+                                    onClick={() => handleDeploy(repo.name)}
+                                    className="bg-blue-500 text-white px-3 py-1 rounded"
                                 >
-                                    {repo.name}
-                                </a>
-                            </div>
-                            <div>
-                                {repo.validated ? (
-                                    <span className="text-green-600 font-semibold">✅ Validé</span>
-                                ) : (
-                                    <button 
-                                        onClick={() => handleValidation(repo.name)} 
-                                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                                    >
-                                        Valider
-                                    </button>
-                                )}
+                                    Prévisualiser
+                                </button>
+                                <button 
+                                    onClick={() => window.open(`/admin/edit/${repo.name}`, '_blank')}
+                                    className="bg-green-500 text-white px-3 py-1 rounded"
+                                >
+                                    Modifier
+                                </button>
+                                <button 
+                                    onClick={() => handleReview(repo.name)}
+                                    className="bg-red-500 text-white px-3 py-1 rounded"
+                                >
+                                    À Revoir
+                                </button>
                             </div>
                         </li>
                     ))}
                 </ul>
+            )}
+
+            {modalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg">
+                        <h2 className="text-lg font-bold mb-2">Feedback pour {currentRepo}</h2>
+                        <textarea 
+                            className="w-full h-32 border rounded p-2"
+                            placeholder="Entrez vos remarques..."
+                            onChange={(e) => setReviewText(e.target.value)}
+                        />
+                        <div className="mt-4 flex justify-end space-x-2">
+                            <button onClick={() => setModalOpen(false)} className="px-4 py-2 bg-gray-400 text-white rounded">Annuler</button>
+                            <button 
+                                onClick={() => handleSubmitReview(reviewText)} 
+                                className="px-4 py-2 bg-blue-500 text-white rounded"
+                            >
+                                Envoyer
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
