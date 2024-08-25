@@ -41,20 +41,36 @@ const AdminDashboard = () => {
     };
 
     return (
-        <div>
-            <h1>Admin Dashboard</h1>
+        <div className="min-h-screen bg-gray-100 p-8">
+            <h1 className="text-3xl font-bold text-center mb-8">Admin Dashboard</h1>
             {loading ? (
-                <p>Loading...</p>
+                <p className="text-center">Loading...</p>
             ) : (
-                <ul>
+                <ul className="space-y-4">
                     {repos.map(repo => (
-                        <li key={repo.name}>
-                            <a href={repo.url} target="_blank" rel="noopener noreferrer">{repo.name}</a>
-                            {repo.validated ? (
-                                <span>✅ Validé</span>
-                            ) : (
-                                <button onClick={() => handleValidation(repo.name)}>Valider</button>
-                            )}
+                        <li key={repo.name} className="bg-white shadow-md rounded-lg p-4 flex justify-between items-center">
+                            <div>
+                                <a 
+                                    href={`https://${repo.name}.vercel.app`} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="text-blue-500 hover:underline text-xl"
+                                >
+                                    {repo.name}
+                                </a>
+                            </div>
+                            <div>
+                                {repo.validated ? (
+                                    <span className="text-green-600 font-semibold">✅ Validé</span>
+                                ) : (
+                                    <button 
+                                        onClick={() => handleValidation(repo.name)} 
+                                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                                    >
+                                        Valider
+                                    </button>
+                                )}
+                            </div>
                         </li>
                     ))}
                 </ul>
