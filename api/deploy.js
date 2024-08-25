@@ -9,7 +9,7 @@ app.use(express.json());
 app.post('/api/deploy', async (req, res) => {
     try {
         const { repoName } = req.body;
-        const uniqueProjectName = `${repoName}_${Date.now()}`;  // Générer un nom de projet unique
+        const uniqueProjectName = `${repoName}_${Date.now()}`;
 
         console.log(`Début du déploiement pour le repo: ${repoName} avec le projet: ${uniqueProjectName}`);
 
@@ -36,12 +36,11 @@ app.post('/api/deploy', async (req, res) => {
             return res.status(500).json({ error: projectData.error.message });
         }
 
-        const projectId = projectData.id;
         const repoId = projectData.link.repoId; // Récupérez le repoId du projet créé
 
         console.log('Réponse de création de projet:', projectData);
 
-        // Étape 2 : Déployer le projet nouvellement créé
+        // Étape 2 : Déployer le projet nouvellement créé sans la propriété `projectId`
         const deployResponse = await fetch('https://api.vercel.com/v13/deployments', {
             method: 'POST',
             headers: {
@@ -50,7 +49,6 @@ app.post('/api/deploy', async (req, res) => {
             },
             body: JSON.stringify({
                 name: uniqueProjectName,
-                projectId: projectId,
                 gitSource: {
                     type: 'github',
                     repoId: repoId, // Utilisez le repoId ici
