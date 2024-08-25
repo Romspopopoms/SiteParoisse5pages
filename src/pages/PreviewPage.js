@@ -13,10 +13,31 @@ const PreviewPage = () => {
         return null;
     }
 
-    const handleSubmitToTeam = () => {
-        alert('Template soumis à votre équipe!');
-        navigate('/confirmation'); // Redirige vers une page de confirmation ou autre
+    const handleSubmitToTeam = async () => {
+        try {
+            const response = await fetch('/api/templates', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: '1234', // Remplacez par l'ID de l'utilisateur connecté
+                    template_data: formData, // Les données du template
+                }),
+            });
+    
+            if (response.ok) {
+                alert('Template soumis à votre équipe!');
+                navigate('/');
+            } else {
+                alert('Erreur lors de la soumission du template.');
+            }
+        } catch (error) {
+            console.error('Error submitting template:', error);
+            alert('Erreur lors de la soumission du template.');
+        }
     };
+    
 
     return (
         <div className="relative">
