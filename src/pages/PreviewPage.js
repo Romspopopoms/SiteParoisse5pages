@@ -15,7 +15,7 @@ const PreviewPage = () => {
 
     const handleSubmitToTeam = async () => {
         try {
-            const response = await fetch('/api/templates', {
+            const response = await fetch('/api/create-repo', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -25,9 +25,10 @@ const PreviewPage = () => {
                     template_data: formData, // Les données du template
                 }),
             });
-    
+
             if (response.ok) {
-                alert('Template soumis à votre équipe!');
+                const data = await response.json();
+                alert(`Template soumis à votre équipe! Repo créé: ${data.repo_url}`);
                 navigate('/');
             } else {
                 alert('Erreur lors de la soumission du template.');
@@ -37,7 +38,6 @@ const PreviewPage = () => {
             alert('Erreur lors de la soumission du template.');
         }
     };
-    
 
     return (
         <div className="relative">
