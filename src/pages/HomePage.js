@@ -1,51 +1,46 @@
-import React, { useState, useEffect, useRef } from "react";
-import Section1 from "../components/Section1";
-import Section2 from "../components/Section2";
-import Section3 from "../components/Section3";
-import Section4 from "../components/Section4";
-import Section5 from "../components/Section5";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import React, { useState } from 'react';
+import TemplateSelector from '../components/TemplateSelector';
+import DynamicForm from '../components/DynamicForm';
+import Template1 from "../assets/BoulangerieTemplates.png";
 
-const Accueil = () => {
-    const [navbarVisible, setNavbarVisible] = useState(false);
-    const section1Ref = useRef(null);
+const HomePage = () => {
+    const [selectedTemplate, setSelectedTemplate] = useState(null);
+    const [formData, setFormData] = useState(null);
 
-    const handleScroll = () => {
-        if (section1Ref.current) {
-            const section1Bottom = section1Ref.current.getBoundingClientRect().bottom;
-            setNavbarVisible(section1Bottom <= 0);
-        }
+    const templates = [
+        {
+            id: 1,
+            name: "Paroisse",
+            description: "Un template pour un site de paroisse avec plusieurs sections.",
+            image: Template1, // Utilise simplement la variable Template1 ici
+            previewUrl: "https://template-boulangerie.vercel.app/" // URL pour prévisualiser le site
+        },
+        // Ajoute d'autres templates ici si nécessaire
+    ];
+
+    const handleTemplateSelect = (template) => {
+        setSelectedTemplate(template);
     };
 
-    useEffect(() => {
-        window.addEventListener("scroll", handleScroll);
-        return () => {
-            window.removeEventListener("scroll", handleScroll);
-        };
-    }, []);
+    const handleFormSubmit = (data) => {
+        setFormData(data);
+        console.log('Données soumises:', data);
+    };
 
     return (
-        <div className="flex flex-col bg-black">
-            <Navbar isVisible={navbarVisible} />
-            <div id="section1" ref={section1Ref}>
-                <Section1 />
-            </div>
-            <div id="section2">
-                <Section2 />
-            </div>
-            <div id="section3">
-                <Section3 />
-            </div>
-            <div id="section4">
-                <Section4 />
-            </div>
-            <div id="section5">
-                <Section5 />
-            </div>
-            <Footer />
+        <div className="">
+            {!selectedTemplate ? (
+                <TemplateSelector templates={templates} onSelectTemplate={handleTemplateSelect} />
+            ) : (
+                <DynamicForm template={selectedTemplate} onSubmit={handleFormSubmit} />
+            )}
+            {formData && (
+                <div className="mt-4">
+                    <p>Site généré avec les données : {JSON.stringify(formData)}</p>
+                </div>
+            )}
         </div>
     );
 };
 
-export default Accueil;
+export default HomePage;
