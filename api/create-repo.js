@@ -133,8 +133,9 @@ async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
 export default async function handler(req, res) {
     if (req.method === 'POST') {
         const { template_data } = req.body;
-        const templateDir = path.join(process.cwd(), 'templates', 'TemplateParoisse1');
+        const templateDir = path.join(process.cwd(), 'src', 'components', 'TemplateParoisse1');
         const outputDir = path.join(process.cwd(), 'output', `repo_${Date.now()}`);
+        console.log('Template directory path:', templateDir);
 
         try {
             const repoUrl = await injectTemplateAndSetupRepo(template_data, templateDir, outputDir);
