@@ -6,7 +6,6 @@ const fetch = require('node-fetch');
 const GITHUB_TOKEN = process.env.MY_GITHUB_TOKEN;
 const GITHUB_ORG = process.env.MY_GITHUB_ORG;
 
-
 function copyDirectory(src, dest) {
     const entries = fs.readdirSync(src, { withFileTypes: true });
 
@@ -89,7 +88,11 @@ function replacePlaceholders(dir, formData) {
 }
 
 async function createGitHubRepo(repoName) {
-    const response = await fetch(`https://api.github.com/orgs/${GITHUB_ORG}/repos`, {
+    const apiUrl = GITHUB_ORG 
+        ? `https://api.github.com/orgs/${GITHUB_ORG}/repos`
+        : `https://api.github.com/user/repos`;
+
+    const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
             'Authorization': `token ${GITHUB_TOKEN}`,
@@ -100,6 +103,7 @@ async function createGitHubRepo(repoName) {
             private: true,
         }),
     });
+
     console.log('GITHUB_TOKEN:', GITHUB_TOKEN ? 'Token exists' : 'Token missing');
     console.log('GITHUB_ORG:', GITHUB_ORG);
 
@@ -121,7 +125,6 @@ function setupGitRepository(repoDir, repoUrl) {
 }
 
 async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
-    // Créer le répertoire de sortie s'il n'existe pas
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
     }
@@ -156,4 +159,3 @@ export default async function handler(req, res) {
         res.status(405).json({ error: 'Method not allowed' });
     }
 }
-
