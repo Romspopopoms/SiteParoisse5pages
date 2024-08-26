@@ -250,6 +250,9 @@ async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
     copyDirectory(templateDir, outputDir);
     replacePlaceholders(outputDir, formData);
 
+    // Copier les fichiers nécessaires à partir du répertoire des composants
+    copyDirectory(path.join(templateDir, 'src', 'composants'), path.join(outputDir, 'src', 'components'));
+
     const repoName = `repo_${Date.now()}`;
     const repoUrl = await createGitHubRepo(repoName);
     const fileTree = [];
