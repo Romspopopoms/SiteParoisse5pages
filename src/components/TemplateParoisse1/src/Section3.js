@@ -1,5 +1,5 @@
 import React from "react";
-import Eucharistie from "../../../assets/Eucharistie.png";
+import Eucharistie from "../assets/Eucharistie.png";
 
 const Section3 = ({ data }) => {
     return (

@@ -1,5 +1,5 @@
 import React from "react";
-import BGSection1 from "../../../assets/bgSection1.png";
+import BGSection1 from "../assets/bgSection1.png";
 
 const Section1 = ({ data, setLogoSrc }) => {
     React.useEffect(() => {

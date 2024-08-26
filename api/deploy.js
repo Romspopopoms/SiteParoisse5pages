@@ -9,8 +9,8 @@ module.exports = async (req, res) => {
 
     try {
         const { repoName } = req.body;
-        const uniqueProjectName = `${repoName}-${Date.now()}`; // Remplacement des underscores par des tirets
-        const domain = `${uniqueProjectName}.vercel.app`.replace(/_/g, '-'); // Remplacer les underscores par des tirets
+        const uniqueProjectName = `${repoName}_${Date.now()}`;
+        const domain = `${uniqueProjectName}.vercel.app`; // Nom de domaine personnalisé
 
         console.log(`Début du déploiement pour le repo: ${repoName} avec le projet: ${uniqueProjectName}`);
 
