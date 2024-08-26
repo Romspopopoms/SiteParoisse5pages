@@ -25,48 +25,57 @@ function copyDirectory(src, dest) {
 function replacePlaceholdersInFile(filePath, formData) {
     let content = fs.readFileSync(filePath, 'utf-8');
 
-    content = content.replace(/{{navbar.logoSrc}}/g, formData.navbar.logoSrc);
-    content = content.replace(/{{navbar.link1}}/g, formData.navbar.links[0].name);
-    content = content.replace(/{{navbar.link2}}/g, formData.navbar.links[1].name);
-    content = content.replace(/{{navbar.link3}}/g, formData.navbar.links[2].name);
-    content = content.replace(/{{navbar.link4}}/g, formData.navbar.links[3].name);
-    content = content.replace(/{{navbar.link5}}/g, formData.navbar.links[4].name);
-    content = content.replace(/{{navbar.link6}}/g, formData.navbar.links[5].name);
+    const navbar = formData.navbar || {};
+    const section1 = formData.section1 || {};
+    const section2 = formData.section2 || {};
+    const section3 = formData.section3 || {};
+    const section4 = formData.section4 || {};
+    const section5 = formData.section5 || {};
+    const section6 = formData.section6 || {};
+    const footer = formData.footer || {};
 
-    content = content.replace(/{{section1.title}}/g, formData.section1.title);
-    content = content.replace(/{{section1.backgroundImageSrc}}/g, formData.section1.backgroundImageSrc || 'default_image_path');
-    content = content.replace(/{{section1.button1}}/g, formData.section1.button1);
-    content = content.replace(/{{section1.button2}}/g, formData.section1.button2);
+    content = content.replace(/{{navbar.logoSrc}}/g, navbar.logoSrc || 'default_logo_path');
+    content = content.replace(/{{navbar.link1}}/g, navbar.links?.[0]?.name || 'default_link1');
+    content = content.replace(/{{navbar.link2}}/g, navbar.links?.[1]?.name || 'default_link2');
+    content = content.replace(/{{navbar.link3}}/g, navbar.links?.[2]?.name || 'default_link3');
+    content = content.replace(/{{navbar.link4}}/g, navbar.links?.[3]?.name || 'default_link4');
+    content = content.replace(/{{navbar.link5}}/g, navbar.links?.[4]?.name || 'default_link5');
+    content = content.replace(/{{navbar.link6}}/g, navbar.links?.[5]?.name || 'default_link6');
 
-    content = content.replace(/{{section2.title}}/g, formData.section2.title);
-    content = content.replace(/{{section2.text1}}/g, formData.section2.text1);
-    content = content.replace(/{{section2.text2}}/g, formData.section2.text2);
-    content = content.replace(/{{section2.text3}}/g, formData.section2.text3);
+    content = content.replace(/{{section1.title}}/g, section1.title || 'default_section1_title');
+    content = content.replace(/{{section1.backgroundImageSrc}}/g, section1.backgroundImageSrc || 'default_image_path');
+    content = content.replace(/{{section1.button1}}/g, section1.button1 || 'default_button1');
+    content = content.replace(/{{section1.button2}}/g, section1.button2 || 'default_button2');
 
-    content = content.replace(/{{section3.title}}/g, formData.section3.title);
-    content = content.replace(/{{section3.description}}/g, formData.section3.description);
-    content = content.replace(/{{section3.backgroundImageSrc}}/g, formData.section3.backgroundImageSrc || 'default_image_path');
+    content = content.replace(/{{section2.title}}/g, section2.title || 'default_section2_title');
+    content = content.replace(/{{section2.text1}}/g, section2.text1 || 'default_text1');
+    content = content.replace(/{{section2.text2}}/g, section2.text2 || 'default_text2');
+    content = content.replace(/{{section2.text3}}/g, section2.text3 || 'default_text3');
 
-    content = content.replace(/{{section4.title}}/g, formData.section4.title);
-    content = content.replace(/{{section4.button1}}/g, formData.section4.button1);
-    content = content.replace(/{{section4.button2}}/g, formData.section4.button2);
-    content = content.replace(/{{section4.button3}}/g, formData.section4.button3);
+    content = content.replace(/{{section3.title}}/g, section3.title || 'default_section3_title');
+    content = content.replace(/{{section3.description}}/g, section3.description || 'default_description');
+    content = content.replace(/{{section3.backgroundImageSrc}}/g, section3.backgroundImageSrc || 'default_image_path');
 
-    content = content.replace(/{{section5.title}}/g, formData.section5.title);
-    content = content.replace(/{{section5.description}}/g, formData.section5.description);
-    content = content.replace(/{{section5.backgroundImageSrc}}/g, formData.section5.backgroundImageSrc || 'default_image_path');
+    content = content.replace(/{{section4.title}}/g, section4.title || 'default_section4_title');
+    content = content.replace(/{{section4.button1}}/g, section4.button1 || 'default_button1');
+    content = content.replace(/{{section4.button2}}/g, section4.button2 || 'default_button2');
+    content = content.replace(/{{section4.button3}}/g, section4.button3 || 'default_button3');
 
-    content = content.replace(/{{section6.title}}/g, formData.section6.title);
-    formData.section6.images.forEach((image, index) => {
-        content = content.replace(new RegExp(`{{section6.image${index + 1}Title}}`, 'g'), image.name);
+    content = content.replace(/{{section5.title}}/g, section5.title || 'default_section5_title');
+    content = content.replace(/{{section5.description}}/g, section5.description || 'default_description');
+    content = content.replace(/{{section5.backgroundImageSrc}}/g, section5.backgroundImageSrc || 'default_image_path');
+
+    content = content.replace(/{{section6.title}}/g, section6.title || 'default_section6_title');
+    section6.images?.forEach((image, index) => {
+        content = content.replace(new RegExp(`{{section6.image${index + 1}Title}}`, 'g'), image.name || `default_image${index + 1}_title`);
         content = content.replace(new RegExp(`{{section6.image${index + 1}Src}}`, 'g'), image.imageSrc || 'default_image_path');
     });
 
-    content = content.replace(/{{footer.logoSrc}}/g, formData.footer.logoSrc || 'default_logo_path');
-    content = content.replace(/{{footer.address}}/g, formData.footer.address);
-    content = content.replace(/{{footer.facebook}}/g, formData.footer.socialLinks.facebook);
-    content = content.replace(/{{footer.instagram}}/g, formData.footer.socialLinks.instagram);
-    content = content.replace(/{{footer.youtube}}/g, formData.footer.socialLinks.youtube);
+    content = content.replace(/{{footer.logoSrc}}/g, footer.logoSrc || 'default_logo_path');
+    content = content.replace(/{{footer.address}}/g, footer.address || 'default_address');
+    content = content.replace(/{{footer.facebook}}/g, footer.socialLinks?.facebook || 'default_facebook');
+    content = content.replace(/{{footer.instagram}}/g, footer.socialLinks?.instagram || 'default_instagram');
+    content = content.replace(/{{footer.youtube}}/g, footer.socialLinks?.youtube || 'default_youtube');
 
     fs.writeFileSync(filePath, content, 'utf-8');
 }
@@ -100,8 +109,6 @@ async function createGitHubRepo(repoName) {
             auto_init: true,
         }),
     });
-
-    console.log('GITHUB_TOKEN:', GITHUB_TOKEN ? 'Token exists' : 'Token missing');
 
     const data = await response.json();
 
@@ -147,7 +154,6 @@ async function processDirectory(repoName, dir, baseDir = '') {
         const relativePath = path.join(baseDir, entry.name);
 
         if (entry.isDirectory()) {
-            // Traiter les fichiers du sous-répertoire de manière récursive
             const subTree = await processDirectory(repoName, fullPath, relativePath);
             fileTree.push(...subTree);
         } else {
@@ -267,7 +273,6 @@ async function updateGitHubBranch(repoName, commitSha) {
         throw new Error(`GitHub API Error: ${data.message}`);
     }
 }
-
 
 async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
     if (!fs.existsSync(outputDir)) {
