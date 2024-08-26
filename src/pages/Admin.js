@@ -5,7 +5,7 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [currentRepo, setCurrentRepo] = useState(null);
-    const [reviewText, setReviewText] = useState(""); // Ajoutez cette ligne
+    const [reviewText, setReviewText] = useState("");
 
     useEffect(() => {
         fetch('/api/get-repos')
@@ -45,7 +45,6 @@ const AdminDashboard = () => {
     };
 
     const handleSubmitReview = () => {
-        // Envoyer le feedback pour le repo
         fetch(`/api/review-repo`, {
             method: 'POST',
             headers: {
@@ -64,37 +63,51 @@ const AdminDashboard = () => {
 
     return (
         <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
+            <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
             {loading ? (
                 <p>Loading...</p>
             ) : (
-                <ul className="space-y-4">
-                    {repos.map(repo => (
-                        <li key={repo.name} className="flex items-center justify-between">
-                            <span>{repo.name}</span>
-                            <div className="space-x-2">
-                                <button 
-                                    onClick={() => handleDeploy(repo.name)}
-                                    className="bg-blue-500 text-white px-3 py-1 rounded"
-                                >
-                                    Prévisualiser
-                                </button>
-                                <button 
-                                    onClick={() => window.open(`/admin/edit/${repo.name}`, '_blank')}
-                                    className="bg-green-500 text-white px-3 py-1 rounded"
-                                >
-                                    Modifier
-                                </button>
-                                <button 
-                                    onClick={() => handleReview(repo.name)}
-                                    className="bg-red-500 text-white px-3 py-1 rounded"
-                                >
-                                    À Revoir
-                                </button>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full bg-white border border-gray-200">
+                        <thead>
+                            <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                                <th className="py-3 px-6 text-left">Repository Name</th>
+                                <th className="py-3 px-6 text-left">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="text-gray-600 text-sm font-light">
+                            {repos.map(repo => (
+                                <tr key={repo.name} className="border-b border-gray-200 hover:bg-gray-100">
+                                    <td className="py-3 px-6 text-left whitespace-nowrap">
+                                        {repo.name}
+                                    </td>
+                                    <td className="py-3 px-6 text-left">
+                                        <div className="flex item-center space-x-2">
+                                            <button 
+                                                onClick={() => handleDeploy(repo.name)}
+                                                className="bg-blue-500 text-white px-3 py-1 rounded"
+                                            >
+                                                Prévisualiser
+                                            </button>
+                                            <button 
+                                                onClick={() => window.open(`/admin/edit/${repo.name}`, '_blank')}
+                                                className="bg-green-500 text-white px-3 py-1 rounded"
+                                            >
+                                                Modifier
+                                            </button>
+                                            <button 
+                                                onClick={() => handleReview(repo.name)}
+                                                className="bg-red-500 text-white px-3 py-1 rounded"
+                                            >
+                                                À Revoir
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             )}
 
             {modalOpen && (
@@ -104,8 +117,8 @@ const AdminDashboard = () => {
                         <textarea 
                             className="w-full h-32 border rounded p-2"
                             placeholder="Entrez vos remarques..."
-                            value={reviewText} // Ajoutez cette ligne
-                            onChange={(e) => setReviewText(e.target.value)} // Modifiez cette ligne
+                            value={reviewText}
+                            onChange={(e) => setReviewText(e.target.value)}
                         />
                         <div className="mt-4 flex justify-end space-x-2">
                             <button onClick={() => setModalOpen(false)} className="px-4 py-2 bg-gray-400 text-white rounded">Annuler</button>
@@ -121,6 +134,6 @@ const AdminDashboard = () => {
             )}
         </div>
     );
-};
+}; 
 
 export default AdminDashboard;
