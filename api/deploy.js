@@ -30,17 +30,22 @@ module.exports = async (req, res) => {
         });
 
         const projectData = await projectResponse.json();
+        console.log('Réponse complète de la création de projet:', projectData);
 
         if (!projectResponse.ok) {
             console.log('Erreur lors de la création du projet:', projectData);
             return res.status(500).json({ error: projectData.error.message });
         }
 
-        const repoId = projectData.link.repoId; // Récupérez le repoId du projet créé
+        const repoId = projectData?.link?.repoId; // Assurez-vous que `repoId` existe
+
+        if (!repoId) {
+            return res.status(500).json({ error: 'RepoId is missing from project creation response' });
+        }
 
         console.log('Réponse de création de projet:', projectData);
 
-        // Étape 2 : Déployer le projet nouvellement créé sans la propriété `projectId`
+        // Étape 2 : Déployer le projet nouvellement créé
         const deployResponse = await fetch('https://api.vercel.com/v13/deployments', {
             method: 'POST',
             headers: {
@@ -51,13 +56,14 @@ module.exports = async (req, res) => {
                 name: uniqueProjectName,
                 gitSource: {
                     type: 'github',
-                    repoId: repoId, // Utilisez le repoId ici
+                    repoId: repoId,
                     ref: 'main', // Branche que vous voulez déployer
                 },
             }),
         });
 
         const deployData = await deployResponse.json();
+        console.log('Réponse de déploiement:', deployData);
 
         if (deployResponse.ok) {
             return res.status(200).json({ previewUrl: deployData.url });
@@ -69,4 +75,4 @@ module.exports = async (req, res) => {
         console.error('Server Error:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
-};  
+};
