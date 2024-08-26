@@ -1,5 +1,5 @@
 import React from "react";
-import Bapteme from "../../assets/bapteme.png";
+import Bapteme from "../../../assets/bapteme.png";
 
 const Section5 = ({ data }) => {
     return (
