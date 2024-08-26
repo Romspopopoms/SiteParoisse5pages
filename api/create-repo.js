@@ -138,6 +138,33 @@ async function createGitHubBlob(repoName, filePath) {
     return data.sha;
 }
 
+async function processDirectory(repoName, dir, baseDir = '') {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    const fileTree = [];
+
+    for (let entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        const relativePath = path.join(baseDir, entry.name);
+
+        if (entry.isDirectory()) {
+            // Traiter les fichiers du sous-répertoire de manière récursive
+            const subTree = await processDirectory(repoName, fullPath, relativePath);
+            fileTree.push(...subTree);
+        } else {
+            const blobSha = await createGitHubBlob(repoName, fullPath);
+
+            fileTree.push({
+                path: relativePath,
+                mode: '100644',
+                type: 'blob',
+                sha: blobSha,
+            });
+        }
+    }
+
+    return fileTree;
+}
+
 async function createGitHubTree(repoName, tree) {
     const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/trees`;
 
@@ -253,20 +280,9 @@ async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
 
     const repoName = `repo_${Date.now()}`;
     const repoUrl = await createGitHubRepo(repoName);
-    const fileTree = [];
 
-    const files = fs.readdirSync(outputDir);
-    for (const file of files) {
-        const filePath = path.join(outputDir, file);
-        const blobSha = await createGitHubBlob(repoName, filePath);
-
-        fileTree.push({
-            path: file,
-            mode: '100644',
-            type: 'blob',
-            sha: blobSha,
-        });
-    }
+    // Traiter les fichiers et les sous-répertoires de manière récursive
+    const fileTree = await processDirectory(repoName, outputDir);
 
     const treeSha = await createGitHubTree(repoName, fileTree);
     const commitSha = await createGitHubCommit(repoName, treeSha);
@@ -275,7 +291,6 @@ async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
 
     return repoUrl;
 }
-
 
 export default async function handler(req, res) {
     if (req.method === 'POST') {
