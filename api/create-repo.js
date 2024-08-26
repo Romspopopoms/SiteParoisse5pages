@@ -247,11 +247,9 @@ async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
         fs.mkdirSync(outputDir, { recursive: true });
     }
 
+    // Copier tous les fichiers du répertoire templateDir vers outputDir
     copyDirectory(templateDir, outputDir);
     replacePlaceholders(outputDir, formData);
-
-    // Copier les fichiers nécessaires à partir du répertoire des composants
-    copyDirectory(path.join(templateDir, 'src', 'composants'), path.join(outputDir, 'src', 'components'));
 
     const repoName = `repo_${Date.now()}`;
     const repoUrl = await createGitHubRepo(repoName);
@@ -277,6 +275,7 @@ async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
 
     return repoUrl;
 }
+
 
 export default async function handler(req, res) {
     if (req.method === 'POST') {
