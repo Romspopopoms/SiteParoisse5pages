@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import Navbar from '../components/TemplateParoisse1/Navbar';
-import Footer from '../components/TemplateParoisse1/Footer';
-import Section1 from '../components/TemplateParoisse1/Section1';
-import Section2 from '../components/TemplateParoisse1/Section2';
-import Section3 from '../components/TemplateParoisse1/Section3';
-import Section4 from '../components/TemplateParoisse1/Section4';
-import Section5 from '../components/TemplateParoisse1/Section5';
-import Section6 from '../components/TemplateParoisse1/Section6';
+import Navbar from '../components/TemplateParoisse1/src/Navbar';
+import Footer from '../components/TemplateParoisse1/src/Footer';
+import Section1 from '../components/TemplateParoisse1/src/Section1';
+import Section2 from '../components/TemplateParoisse1/src/Section2';
+import Section3 from '../components/TemplateParoisse1/src/Section3';
+import Section4 from '../components/TemplateParoisse1/src/Section4';
+import Section5 from '../components/TemplateParoisse1/src/Section5';
+import Section6 from '../components/TemplateParoisse1/src/Section6';
 import { FiSmartphone, FiMonitor } from 'react-icons/fi';
 
 const Preview = ({ formData = {} }) => {
