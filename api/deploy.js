@@ -10,6 +10,7 @@ module.exports = async (req, res) => {
     try {
         const { repoName } = req.body;
         const uniqueProjectName = `${repoName}_${Date.now()}`;
+        const domain = `${uniqueProjectName}.vercel.app`; // Nom de domaine personnalisé
 
         console.log(`Début du déploiement pour le repo: ${repoName} avec le projet: ${uniqueProjectName}`);
 
@@ -37,15 +38,34 @@ module.exports = async (req, res) => {
             return res.status(500).json({ error: projectData.error.message });
         }
 
+        const projectId = projectData.id; // Récupérer l'ID du projet
         const repoId = projectData?.link?.repoId; // Assurez-vous que `repoId` existe
 
         if (!repoId) {
             return res.status(500).json({ error: 'RepoId is missing from project creation response' });
         }
 
-        console.log('Réponse de création de projet:', projectData);
+        // Étape 2 : Ajouter un domaine de production au projet
+        const domainResponse = await fetch(`https://api.vercel.com/v9/projects/${projectId}/domains`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${VERCEL_API_TOKEN}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: domain,
+            }),
+        });
 
-        // Étape 2 : Déployer le projet nouvellement créé
+        const domainData = await domainResponse.json();
+        console.log('Réponse d\'ajout de domaine:', domainData);
+
+        if (!domainResponse.ok) {
+            console.log('Erreur lors de l\'ajout du domaine:', domainData);
+            return res.status(500).json({ error: domainData.error.message });
+        }
+
+        // Étape 3 : Déployer le projet nouvellement créé
         const deployResponse = await fetch('https://api.vercel.com/v13/deployments', {
             method: 'POST',
             headers: {
