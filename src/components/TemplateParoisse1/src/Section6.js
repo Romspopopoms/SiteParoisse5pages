@@ -1,7 +1,7 @@
 import React from "react";
-import Enfants from "../assets/enfants.png";
-import Ado from "../assets/ado.png";
-import JeunePro from "../assets/jeunepro.png";
+import Enfants from "./assets/enfants.png";
+import Ado from "./assets/ado.png";
+import JeunePro from "./assets/jeunepro.png";
 
 const Section6 = ({ data }) => {
     return (

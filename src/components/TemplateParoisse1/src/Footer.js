@@ -1,7 +1,7 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFacebook, faInstagram, faYoutube } from '@fortawesome/free-brands-svg-icons';
-import DefaultBackground from "../assets/back paroisse.png"; // Remplacez par le chemin de votre image par défaut
+import DefaultBackground from "./assets/back paroisse.png"; // Remplacez par le chemin de votre image par défaut
 
 const Footer = ({ backgroundImage, logoSrc, address, contact, socialLinks }) => {
     return (
