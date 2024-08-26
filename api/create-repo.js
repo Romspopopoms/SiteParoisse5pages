@@ -22,6 +22,30 @@ function copyDirectory(src, dest) {
     }
 }
 
+function saveUploadedImages(formData, outputDir) {
+    const assetsDir = path.join(outputDir, 'src', 'assets');
+    if (!fs.existsSync(assetsDir)) {
+        fs.mkdirSync(assetsDir, { recursive: true });
+    }
+
+    const sections = ['navbar', 'section1', 'section2', 'section3', 'section4', 'section5', 'section6', 'footer'];
+
+    sections.forEach(section => {
+        const sectionData = formData[section];
+        if (sectionData) {
+            Object.keys(sectionData).forEach(key => {
+                if (sectionData[key] && typeof sectionData[key] === 'object' && sectionData[key].image) {
+                    const imageBuffer = Buffer.from(sectionData[key].image, 'base64');
+                    const imageName = `${section}_${key}.png`; // Par exemple: section1_backgroundImage.png
+                    const imagePath = path.join(assetsDir, imageName);
+                    fs.writeFileSync(imagePath, imageBuffer);
+                    sectionData[key].imageSrc = path.relative(outputDir, imagePath);
+                }
+            });
+        }
+    });
+}
+
 function replacePlaceholdersInFile(filePath, formData) {
     let content = fs.readFileSync(filePath, 'utf-8');
 
@@ -171,6 +195,7 @@ async function processDirectory(repoName, dir, baseDir = '') {
     return fileTree;
 }
 
+
 async function createGitHubTree(repoName, tree) {
     const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/trees`;
 
@@ -223,7 +248,6 @@ async function createGitHubCommit(repoName, treeSha) {
 async function updateGitHubBranch(repoName, commitSha) {
     const branchRefUrl = `https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/refs/heads/main`;
 
-    // Vérifier si la branche 'main' existe
     const branchResponse = await fetch(branchRefUrl, {
         method: 'GET',
         headers: {
@@ -233,7 +257,6 @@ async function updateGitHubBranch(repoName, commitSha) {
     });
 
     if (branchResponse.status === 404) {
-        // Si la branche n'existe pas, la créer
         const createBranchResponse = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/refs`, {
             method: 'POST',
             headers: {
@@ -251,7 +274,6 @@ async function updateGitHubBranch(repoName, commitSha) {
             throw new Error(`GitHub API Error: ${data.message}`);
         }
     } else if (branchResponse.ok) {
-        // Mise à jour de la branche 'main' avec le nouveau commit
         const updateBranchResponse = await fetch(branchRefUrl, {
             method: 'PATCH',
             headers: {
@@ -260,7 +282,7 @@ async function updateGitHubBranch(repoName, commitSha) {
             },
             body: JSON.stringify({
                 sha: commitSha,
-                force: true, // Forcer la mise à jour
+                force: true,
             }),
         });
 
@@ -279,14 +301,15 @@ async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
         fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    // Copier tous les fichiers du répertoire templateDir vers outputDir
     copyDirectory(templateDir, outputDir);
+
+    saveUploadedImages(formData, outputDir);
+    
     replacePlaceholders(outputDir, formData);
 
     const repoName = `repo_${Date.now()}`;
     const repoUrl = await createGitHubRepo(repoName);
 
-    // Traiter les fichiers et les sous-répertoires de manière récursive
     const fileTree = await processDirectory(repoName, outputDir);
 
     const treeSha = await createGitHubTree(repoName, fileTree);
@@ -302,8 +325,6 @@ export default async function handler(req, res) {
         const { template_data } = req.body;
         const templateDir = path.join(__dirname, '..', 'src', 'components', 'TemplateParoisse1');
         const outputDir = path.join('/tmp', `repo_${Date.now()}`);
-        console.log('Template directory path:', templateDir);
-        console.log('Output directory path:', outputDir);
 
         try {
             const repoUrl = await injectTemplateAndSetupRepo(template_data, templateDir, outputDir);
