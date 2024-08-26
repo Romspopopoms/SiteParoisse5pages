@@ -36,7 +36,7 @@ const Footer = ({ backgroundImage, logoSrc, address, contact, socialLinks }) => 
                     <div className="md:hidden mt-8">
                         <h1 className="font-inter text-[#E6E6E6]">© SynergieInnovation 2024</h1>
                     </div>
-                </div>
+                </div> 
             </div>
         </div>
     );
