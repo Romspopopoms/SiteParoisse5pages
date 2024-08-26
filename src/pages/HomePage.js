@@ -13,14 +13,15 @@ const HomePage = () => {
             id: 1,
             name: "Paroisse",
             description: "Un template pour un site de paroisse avec plusieurs sections.",
-            image: Template1, // Utilise simplement la variable Template1 ici
-            previewUrl: "https://template-boulangerie.vercel.app/" // URL pour prévisualiser le site
+            image: Template1, 
+            previewUrl: "https://template-boulangerie.vercel.app/"
         },
-        // Ajoute d'autres templates ici si nécessaire
+        // Ajoutez d'autres templates ici si nécessaire
     ];
 
     const handleTemplateSelect = (template) => {
         setSelectedTemplate(template);
+        setFormData(null);  // Réinitialiser les données du formulaire si un nouveau template est sélectionné
     };
 
     const handleFormSubmit = (data) => {
@@ -29,12 +30,20 @@ const HomePage = () => {
     };
 
     return (
-        <div className="">
+        <div>
             <BaseNavbar />
             {!selectedTemplate ? (
                 <TemplateSelector templates={templates} onSelectTemplate={handleTemplateSelect} />
             ) : (
-                <DynamicForm template={selectedTemplate} onSubmit={handleFormSubmit} />
+                <>
+                    <DynamicForm template={selectedTemplate} onSubmit={handleFormSubmit} />
+                    <button 
+                        onClick={() => setSelectedTemplate(null)} 
+                        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg"
+                    >
+                        Retour à la sélection de template
+                    </button>
+                </>
             )}
             {formData && (
                 <div className="mt-4">

@@ -1,7 +1,7 @@
 import React from "react";
 import Eucharistie from "./assets/Eucharistie.png";
 
-const Section3 = ({ data }) => {
+const Section3 = ({ data = {} }) => {
     return (
         <div id="section3" className="relative flex flex-col items-center justify-center min-h-screen w-full overflow-hidden">
             <img 

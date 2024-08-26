@@ -3,7 +3,7 @@ import Enfants from "./assets/enfants.png";
 import Ado from "./assets/ado.png";
 import JeunePro from "./assets/jeunepro.png";
 
-const Section6 = ({ data }) => {
+const Section6 = ({ data = {} }) => {
     return (
         <div id="section6" className="mt-8 mb-20 px-4 md:px-8">
             <h1 className="text-2xl md:text-4xl font-kanit font-bold text-primary text-center mb-12">

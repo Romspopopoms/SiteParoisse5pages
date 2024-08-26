@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFacebook, faInstagram, faYoutube } from '@fortawesome/free-brands-svg-icons';
 import DefaultBackground from "./assets/back paroisse.png"; // Remplacez par le chemin de votre image par défaut
 
-const Footer = ({ backgroundImage, logoSrc, address, contact, socialLinks }) => {
+const Footer = ({ backgroundImage, logoSrc, address, contact, socialLinks = {} }) => {
     return (
         <div className="relative flex">
             <img src={backgroundImage || DefaultBackground} alt='background' className="h-96 object-cover md:h-64 w-full" />

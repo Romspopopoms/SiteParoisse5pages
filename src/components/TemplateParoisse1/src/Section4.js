@@ -2,7 +2,7 @@ import React from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendar, faMapMarkerAlt, faHandsPraying } from '@fortawesome/free-solid-svg-icons';
 
-const Section4 = ({ data }) => {
+const Section4 = ({ data = {} }) => {
     return (
         <div id="section4" className="mt-8 mb-20 px-4 md:px-8">
             <h1 className="text-2xl md:text-4xl font-kanit font-bold text-primary text-center mb-12">

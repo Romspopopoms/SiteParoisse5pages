@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { FiMenu } from "react-icons/fi";
 
-const Navbar = ({ logoSrc, links, isMobileView }) => {
+const Navbar = ({ logoSrc = 'default_logo_path', links = [], isMobileView = false }) => {
     const [menuOpen, setMenuOpen] = useState(false);
 
     const toggleMenu = () => {

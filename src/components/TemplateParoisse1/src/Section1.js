@@ -1,7 +1,7 @@
 import React from "react";
 import BGSection1 from "./assets/bgSection1.png";
 
-const Section1 = ({ data, setLogoSrc }) => {
+const Section1 = ({ data = {}, setLogoSrc }) => {
     React.useEffect(() => {
         if (data.logoSrc) {
             setLogoSrc(data.logoSrc);

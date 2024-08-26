@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faTimes } from "@fortawesome/free-solid-svg-icons";
 
-const Section2 = ({ data, isMobileView }) => {
+const Section2 = ({ data = {}, isMobileView }) => {
     const [Open, SetOpen] = useState(false);
     const [Open2, SetOpen2] = useState(false);
     const [Open3, SetOpen3] = useState(false);

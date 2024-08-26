@@ -1,7 +1,7 @@
 import React from "react";
 import Bapteme from "./assets/bapteme.png";
 
-const Section5 = ({ data }) => {
+const Section5 = ({ data = {} }) => {
     return (
         <div id="section5" className="relative flex flex-col items-center justify-center min-h-screen w-full">
             <img 

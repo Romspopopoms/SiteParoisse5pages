@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Remplacez useHistory par useNavigate
+import { useNavigate } from 'react-router-dom';
 import Preview from '../components/Preview';
 
 const DynamicForm = ({ onSubmit }) => {
@@ -26,7 +26,13 @@ const DynamicForm = ({ onSubmit }) => {
             title: 'Un lieu pour vivre sa foi',
             text1: 'Texte de la première section',
             text2: 'Texte de la deuxième section',
-            text3: 'Texte de la troisième section'
+            text3: 'Texte de la troisième section',
+            sacramentsTitle: '',
+            sacramentsDescription: '',
+            youthMinistryTitle: '',
+            youthMinistryDescription: '',
+            communityLifeTitle: '',
+            communityLifeDescription: ''
         },
         section3: {
             title: 'Vivez l\'Eucharistie',
@@ -35,9 +41,15 @@ const DynamicForm = ({ onSubmit }) => {
         },
         section4: {
             title: 'Que pouvons-nous faire pour vous ?',
-            button1: 'Intention de prière',
-            button2: 'Prendre un rendez-vous',
-            button3: 'Visiter l\'église'
+            button1Text: 'Intention de prière',
+            button2Text: 'Prendre un rendez-vous',
+            button3Text: 'Visiter l\'église',
+            icon1Src: '',
+            icon2Src: '',
+            icon3Src: '',
+            circle1Color: '#8BA2E0',
+            circle2Color: '#A7CCAD',
+            circle3Color: '#F09878'
         },
         section5: {
             title: 'Le baptême comme point de départ',
@@ -47,14 +59,15 @@ const DynamicForm = ({ onSubmit }) => {
         section6: {
             title: 'Nos Pastorales pour les Jeunes',
             images: [
-                { name: 'ENFANTS', image: '' },
-                { name: 'ADOS', image: '' },
-                { name: 'JEUNES PRO', image: '' }
+                { name: 'ENFANTS', image: '', imageSrc: '' },
+                { name: 'ADOS', image: '', imageSrc: '' },
+                { name: 'JEUNES PRO', image: '', imageSrc: '' }
             ]
         },
         footer: {
             logo: '',
             address: 'Paroisse Saint-Athanase d\'Alexandrie de Provence, 12 rue du ciel, 83999 LaBelleVilleCatholique',
+            contact: '',
             socialLinks: {
                 facebook: '',
                 instagram: '',
@@ -78,9 +91,8 @@ const DynamicForm = ({ onSubmit }) => {
 
     const handleConfirm = () => {
         setShowModal(false);
-        navigate('/PreviewPage', { state: { formData } });  // Redirige vers la page de prévisualisation avec formData
+        navigate('/PreviewPage', { state: { formData } }); 
     };
-    
 
     const handleChange = (section, key, value, index = null) => {
         setFormData((prevData) => {
@@ -128,7 +140,6 @@ const DynamicForm = ({ onSubmit }) => {
         e.preventDefault();
         onSubmit(formData);
     };
-
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

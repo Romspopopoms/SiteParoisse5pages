@@ -51,7 +51,7 @@ const Preview = ({ formData = {} }) => {
             >
                 <Navbar 
                     logoSrc={data.navbar.logoSrc}
-                    links={data.navbar.links}  // Passe les liens ici
+                    links={Array.isArray(data.navbar.links) ? data.navbar.links : []}  // Vérifie que 'links' est un tableau
                     isMobileView={isMobileView}
                 />
                 
@@ -80,7 +80,7 @@ const Preview = ({ formData = {} }) => {
                     logoSrc={data.navbar.logoSrc}  // Utilisation directe de data
                     address={data.footer.address}
                     contact={data.footer.contact}
-                    socialLinks={data.footer.socialLinks}
+                    socialLinks={data.footer.socialLinks || {}}  // Ajoute une vérification pour 'socialLinks'
                 />
             </div>
         </div>
