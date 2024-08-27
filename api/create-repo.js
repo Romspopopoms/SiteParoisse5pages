@@ -36,10 +36,10 @@ function saveUploadedImages(formData, outputDir) {
             Object.keys(sectionData).forEach(key => {
                 if (sectionData[key] && typeof sectionData[key] === 'object' && sectionData[key].image) {
                     const imageBuffer = Buffer.from(sectionData[key].image, 'base64');
-                    const imageName = `${section}_${key}.png`; // Par exemple: section1_backgroundImage.png
+                    const imageName = `${section}_${key}.png`; // Nom d'image unique pour chaque section
                     const imagePath = path.join(assetsDir, imageName);
                     fs.writeFileSync(imagePath, imageBuffer);
-                    sectionData[key].imageSrc = path.relative(outputDir, imagePath);
+                    sectionData[key].imageSrc = `./src/assets/${imageName}`; // Chemin relatif à partir de `src`
                 }
             });
         }
@@ -58,7 +58,7 @@ function replacePlaceholdersInFile(filePath, formData) {
     const section6 = formData.section6 || {};
     const footer = formData.footer || {};
 
-    content = content.replace(/{{navbar.logoSrc}}/g, navbar.logoSrc || 'default_logo_path');
+    content = content.replace(/{{navbar.logoSrc}}/g, navbar.logoSrc || './src/assets/default_logo.png');
     content = content.replace(/{{navbar.link1}}/g, navbar.links?.[0]?.name || 'default_link1');
     content = content.replace(/{{navbar.link2}}/g, navbar.links?.[1]?.name || 'default_link2');
     content = content.replace(/{{navbar.link3}}/g, navbar.links?.[2]?.name || 'default_link3');
@@ -67,7 +67,7 @@ function replacePlaceholdersInFile(filePath, formData) {
     content = content.replace(/{{navbar.link6}}/g, navbar.links?.[5]?.name || 'default_link6');
 
     content = content.replace(/{{section1.title}}/g, section1.title || 'default_section1_title');
-    content = content.replace(/{{section1.backgroundImageSrc}}/g, section1.backgroundImageSrc || 'default_image_path');
+    content = content.replace(/{{section1.backgroundImageSrc}}/g, section1.backgroundImageSrc || './src/assets/default_background.png');
     content = content.replace(/{{section1.button1}}/g, section1.button1 || 'default_button1');
     content = content.replace(/{{section1.button2}}/g, section1.button2 || 'default_button2');
 
@@ -78,7 +78,7 @@ function replacePlaceholdersInFile(filePath, formData) {
 
     content = content.replace(/{{section3.title}}/g, section3.title || 'default_section3_title');
     content = content.replace(/{{section3.description}}/g, section3.description || 'default_description');
-    content = content.replace(/{{section3.backgroundImageSrc}}/g, section3.backgroundImageSrc || 'default_image_path');
+    content = content.replace(/{{section3.backgroundImageSrc}}/g, section3.backgroundImageSrc || './src/assets/default_background.png');
 
     content = content.replace(/{{section4.title}}/g, section4.title || 'default_section4_title');
     content = content.replace(/{{section4.button1}}/g, section4.button1 || 'default_button1');
@@ -87,15 +87,15 @@ function replacePlaceholdersInFile(filePath, formData) {
 
     content = content.replace(/{{section5.title}}/g, section5.title || 'default_section5_title');
     content = content.replace(/{{section5.description}}/g, section5.description || 'default_description');
-    content = content.replace(/{{section5.backgroundImageSrc}}/g, section5.backgroundImageSrc || 'default_image_path');
+    content = content.replace(/{{section5.backgroundImageSrc}}/g, section5.backgroundImageSrc || './src/assets/default_background.png');
 
     content = content.replace(/{{section6.title}}/g, section6.title || 'default_section6_title');
     section6.images?.forEach((image, index) => {
         content = content.replace(new RegExp(`{{section6.image${index + 1}Title}}`, 'g'), image.name || `default_image${index + 1}_title`);
-        content = content.replace(new RegExp(`{{section6.image${index + 1}Src}}`, 'g'), image.imageSrc || 'default_image_path');
+        content = content.replace(new RegExp(`{{section6.image${index + 1}Src}}`, 'g'), image.imageSrc || './src/assets/default_image.png');
     });
 
-    content = content.replace(/{{footer.logoSrc}}/g, footer.logoSrc || 'default_logo_path');
+    content = content.replace(/{{footer.logoSrc}}/g, footer.logoSrc || './src/assets/default_logo.png');
     content = content.replace(/{{footer.address}}/g, footer.address || 'default_address');
     content = content.replace(/{{footer.facebook}}/g, footer.socialLinks?.facebook || 'default_facebook');
     content = content.replace(/{{footer.instagram}}/g, footer.socialLinks?.instagram || 'default_instagram');
@@ -194,7 +194,6 @@ async function processDirectory(repoName, dir, baseDir = '') {
 
     return fileTree;
 }
-
 
 async function createGitHubTree(repoName, tree) {
     const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/trees`;
@@ -304,7 +303,7 @@ async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
     copyDirectory(templateDir, outputDir);
 
     saveUploadedImages(formData, outputDir);
-    
+
     replacePlaceholders(outputDir, formData);
 
     const repoName = `repo_${Date.now()}`;

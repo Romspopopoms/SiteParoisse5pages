@@ -138,8 +138,9 @@ const DynamicForm = ({ onSubmit }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSubmit(formData);
+        onSubmit(formData);  // Assurez-vous que formData contient toutes les informations nécessaires
     };
+    
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
