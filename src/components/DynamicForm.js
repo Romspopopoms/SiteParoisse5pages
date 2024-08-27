@@ -127,14 +127,14 @@ const DynamicForm = ({ onSubmit }) => {
                     updatedData[section].images[index].image = file;
                     updatedData[section].images[index].imageSrc = reader.result;
                 } else {
-                    updatedData[section][key] = file;
-                    updatedData[section][`${key}Src`] = reader.result;
+                    updatedData[section][`${key}Src`] = reader.result;  // Mettez à jour `logoSrc` ici
                 }
                 return updatedData;
             });
         };
         reader.readAsDataURL(file);
     };
+    
 
     const handleSubmit = (e) => {
         e.preventDefault();
