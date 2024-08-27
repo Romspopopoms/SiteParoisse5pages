@@ -3,8 +3,9 @@ const path = require('path');
 const fetch = require('node-fetch');
 
 const GITHUB_TOKEN = process.env.MY_GITHUB_TOKEN;
-const GITHUB_USER = process.env.MY_GITHUB_ORG; // Le nom d'utilisateur GitHub
+const GITHUB_USER = process.env.MY_GITHUB_ORG; // Le nom d'utilisateur ou l'organisation GitHub
 
+// Fonction pour copier un répertoire et tout son contenu
 function copyDirectory(src, dest) {
     const entries = fs.readdirSync(src, { withFileTypes: true });
 
@@ -22,6 +23,7 @@ function copyDirectory(src, dest) {
     }
 }
 
+// Fonction pour sauvegarder les images téléchargées dans le répertoire `assets`
 function saveUploadedImages(formData, outputDir) {
     const assetsDir = path.join(outputDir, 'src', 'assets');
     if (!fs.existsSync(assetsDir)) {
@@ -34,18 +36,20 @@ function saveUploadedImages(formData, outputDir) {
         const sectionData = formData[section];
         if (sectionData) {
             Object.keys(sectionData).forEach(key => {
-                if (sectionData[key] && typeof sectionData[key] === 'object' && sectionData[key].image) {
-                    const imageBuffer = Buffer.from(sectionData[key].image, 'base64');
-                    const imageName = `${section}_${key}.png`; // Nom d'image unique pour chaque section
+                const imageData = sectionData[key]?.image;
+                if (imageData && typeof imageData === 'string' && imageData.startsWith('data:image')) {
+                    const imageBuffer = Buffer.from(imageData.split(',')[1], 'base64');
+                    const imageName = `${section}_${key}.png`; // Nom unique pour chaque image
                     const imagePath = path.join(assetsDir, imageName);
                     fs.writeFileSync(imagePath, imageBuffer);
-                    sectionData[key].imageSrc = `./src/assets/${imageName}`; // Chemin relatif à partir de `src`
+                    sectionData[key].imageSrc = `./src/assets/${imageName}`; // Met à jour le chemin relatif de l'image
                 }
             });
         }
     });
 }
 
+// Fonction pour remplacer les placeholders dans un fichier avec les données fournies
 function replacePlaceholdersInFile(filePath, formData) {
     let content = fs.readFileSync(filePath, 'utf-8');
 
@@ -104,6 +108,7 @@ function replacePlaceholdersInFile(filePath, formData) {
     fs.writeFileSync(filePath, content, 'utf-8');
 }
 
+// Fonction pour parcourir les fichiers d'un répertoire et remplacer les placeholders
 function replacePlaceholders(dir, formData) {
     const files = fs.readdirSync(dir);
 
@@ -118,6 +123,7 @@ function replacePlaceholders(dir, formData) {
     });
 }
 
+// Fonction pour créer un dépôt GitHub
 async function createGitHubRepo(repoName) {
     const apiUrl = `https://api.github.com/user/repos`;
 
@@ -143,6 +149,7 @@ async function createGitHubRepo(repoName) {
     return data.clone_url;
 }
 
+// Fonction pour créer un blob GitHub à partir d'un fichier
 async function createGitHubBlob(repoName, filePath) {
     const content = fs.readFileSync(filePath, 'utf-8');
     const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/blobs`;
@@ -169,6 +176,7 @@ async function createGitHubBlob(repoName, filePath) {
     return data.sha;
 }
 
+// Fonction pour parcourir un répertoire et créer un arbre de fichiers GitHub
 async function processDirectory(repoName, dir, baseDir = '') {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     const fileTree = [];
@@ -195,6 +203,7 @@ async function processDirectory(repoName, dir, baseDir = '') {
     return fileTree;
 }
 
+// Fonction pour créer un arbre GitHub à partir de la liste des blobs
 async function createGitHubTree(repoName, tree) {
     const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/trees`;
 
@@ -219,6 +228,7 @@ async function createGitHubTree(repoName, tree) {
     return data.sha;
 }
 
+// Fonction pour créer un commit GitHub
 async function createGitHubCommit(repoName, treeSha) {
     const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/commits`;
 
@@ -244,6 +254,7 @@ async function createGitHubCommit(repoName, treeSha) {
     return data.sha;
 }
 
+// Fonction pour mettre à jour la branche principale du dépôt avec le nouveau commit
 async function updateGitHubBranch(repoName, commitSha) {
     const branchRefUrl = `https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/refs/heads/main`;
 
@@ -256,6 +267,7 @@ async function updateGitHubBranch(repoName, commitSha) {
     });
 
     if (branchResponse.status === 404) {
+        // Créer la branche si elle n'existe pas
         const createBranchResponse = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${repoName}/git/refs`, {
             method: 'POST',
             headers: {
@@ -273,6 +285,7 @@ async function updateGitHubBranch(repoName, commitSha) {
             throw new Error(`GitHub API Error: ${data.message}`);
         }
     } else if (branchResponse.ok) {
+        // Mettre à jour la branche si elle existe déjà
         const updateBranchResponse = await fetch(branchRefUrl, {
             method: 'PATCH',
             headers: {
@@ -295,30 +308,39 @@ async function updateGitHubBranch(repoName, commitSha) {
     }
 }
 
+// Fonction principale pour injecter les données dans le template et configurer le dépôt GitHub
 async function injectTemplateAndSetupRepo(formData, templateDir, outputDir) {
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
     }
 
+    // Copier les fichiers du template dans le répertoire de sortie
     copyDirectory(templateDir, outputDir);
 
+    // Sauvegarder les images téléchargées dans le répertoire `assets`
     saveUploadedImages(formData, outputDir);
 
+    // Remplacer les placeholders dans les fichiers du répertoire de sortie
     replacePlaceholders(outputDir, formData);
 
+    // Créer le dépôt GitHub
     const repoName = `repo_${Date.now()}`;
     const repoUrl = await createGitHubRepo(repoName);
 
+    // Créer l'arbre des fichiers pour le dépôt GitHub
     const fileTree = await processDirectory(repoName, outputDir);
 
+    // Créer un commit GitHub avec l'arbre des fichiers
     const treeSha = await createGitHubTree(repoName, fileTree);
     const commitSha = await createGitHubCommit(repoName, treeSha);
 
+    // Mettre à jour la branche principale du dépôt avec le nouveau commit
     await updateGitHubBranch(repoName, commitSha);
 
     return repoUrl;
 }
 
+// Handler de l'API pour traiter les requêtes POST
 export default async function handler(req, res) {
     if (req.method === 'POST') {
         const { template_data } = req.body;
